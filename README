@@ -1,2 +1,1 @@
 This is an android app that matches people to split a cab, in semi-real time, based on departure and destination locations. V1 focus on matching riders at JFK, LGA and EWR going to NYC. This repository has both server side and app side code.
-!
