@@ -31,30 +31,44 @@ class User(MongoMixIn.MongoMixIn):
             user_id = str(uuid.uuid4())
         spec = {klass.A_ID:user_id}
 
-        first_name = doc.get(klass.A_FIRST_NAME)
-        last_name = doc.get(klass.A_LAST_NAME)
-        image_url = doc.get(klass.A_IMG_URL)
-        phone = doc.get(klass.A_PHONE)
-                
         try:
             klass.mdbc().update(spec=spec, document={"$set": doc}, upsert=True, safe=True)
-            return user_id
+            return {"user_id":user_id, "status":1}
         except Exception, e:
             logging.error("COULD NOT UPSERT document in model.User Exception: %s" % e.message)
-        return None
+        
+        return {"status":0}
 
     @classmethod
-    def get_user(klass, phone):
+    def get_user_by_phone(klass, phone):
+        user = {}
+        
         spec = {klass.A_PHONE:phone}
         try:
             cursor = klass.mdbc().find(spec).limit(limit)
-            return klass.list_from_cursor(cursor)
+            user = klass.dict_from_cursor()
+            user["status"] = 1
         except Exception, e:
-            logging.error("COULD NOT retreieve user in model.User Exception: %s" % e.message)
-        return None
+            logging.error("COULD NOT RETREIVE user in model.User Exception: %s" % e.message)
+            user["status"] = 0
         
-
-# Things to add
-# - input formatting check (phone number is all numbers)
-#        
+        return user
     
+    @classmethod
+    def get_users(klass, users=[]):
+        users_info = {}
+        
+        for user_id in users:
+            user = {}
+            spec = {klass.A_ID:user_id}
+            try:
+                cursor = klass.mdbc().find(spec).limit(limit)
+                user = klass.dict_from_cursor(cursor)
+                user["status"] = 1
+            except Exception, e:
+                logging.error("COULD NOT RETREIVE user in model.User Exception: %s" % e.message)
+                user["status"] = 0
+            
+            users_info[user_id] = user
+        
+        return users_info

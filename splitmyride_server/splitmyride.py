@@ -1,21 +1,3 @@
-# Main function
-
-## Sets up all the HTTP Get / Post requests using Tornado, listening on port 80
-
-
-
-### FUNCTIONS
-# Store a ride
-# Get all rides from a certain location
-# Get the best match for a departure, destination pair
-# Get all rides for a specific user
-# Get terminals & airline lists
-# Save user info
-# Get user info
-
-
-### Is this where I should put chron calls? Put them in the init method of this class?
-
 import re
 import urlparse
 import urllib
@@ -30,22 +12,24 @@ import settings
 from model.User import User
 from lib.UserHelper import UserHelper
 
+
+## Sets up all the HTTP Get / Post requests using Tornado, listening on port 80
 class UserHandler(tornado.web.RequestHandler):
     
     # Get user info
     def get(self):
         if re.match('^/splitmyride/user.*$', self.request.uri):
-            return self.get_user()
-            
-    def get_user(self):
+            self.write(self.get_user_by_phone)
+    
+    # Get user info from database        
+    def get_user_by_phone(self):
         phone = self.get_argument('phone')
-        UserHelper.get_user(phone)
-        ## NEED TO CHANGE THIS BACK INTO JSON?
+        return UserHelper.get_user_by_phone(phone)
        
     # Add a new user with first_name, last_name, phone and image_url
     def post(self):
         if re.match('^/splitmyride/user.*$', self.request.uri):
-            return self.add_user()
+            self.write(self.add_user())
 
     # Add user to database
     def add_user(self):
@@ -53,23 +37,44 @@ class UserHandler(tornado.web.RequestHandler):
         last_name = self.get_argument('last_name')
         image_url = self.get_argument('image_url') 
         phone = self.get_argument('phone')
+        return UserHelper.add_user(first_name, last_name, image_url, phone)
         
-        user_id = UserHelper.add_user(first_name, last_name, image_url, phone)
-        status = "success"
-        if not user_id:
-            status = "failed"
-        return self.redirect('/splitmyride/user?%s=1', status=status)  % status
+
+class AddRideHandler(tornado.web.RequestHandler):
+
+    # Add a new ride
+    def post(self):
+        if re.match('^/splitmyride/addRide.*$', self.request.uri):
+            self.write(self.add_ride())
+
+    # Add user to database
+    def add_ride(self):
+        user_id = self.get_argument('user_id') 
+        origin = self.get_argument('origin')
+        destination = self.get_argument('destination') 
+        time = self.get_argument('time')
+        return RideHelper.add_ride(user_id, origin, destination, time)
+
+class GetMatches(tornado.web.RequestHandler):
+    
+    def get(self):
+        if re.match('^/splitmyride/getMatches.*$', self.request.uri):
+            self.write(self.get_matches())
+            
+    def get_matches(self):
+        ride_id = self.get_argument('ride_id')
+        user_id = self.get_argument('user_id')
+        return RideHelper.get_matches(ride_id)
         
-        
-        
+
 
 
 
 application = tornado.web.Application([
     (r"/splitmyride/user.*", UserHandler),
     (r"/splitmyride/addRide.*", AddRideHandler),
-    (r"/splitmyride/viewPotentialMatches.*", ViewPotentialMatchesHandler),
-    (r"/splitmyride/requestMatch.*", RequestMatchHandler),
+    (r"/splitmyride/getMatches.*", GetPotentialMatchesHandler),
+    (r"/splitmyride/Match.*", RequestMatchHandler),
     (r"/splitmyride/requestMatchResponse.*", RequestMatchResponseHandler),
     (r"/splitmyride/terminalsInfo.*", TerminalsHandler),
 ])
@@ -79,3 +84,4 @@ if __name__ == "__main__":
     http_server.listen(80)
     tornado.ioloop.IOLoop.instance().start()
     
+## COnvert string into a dictionary
