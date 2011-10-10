@@ -40,7 +40,7 @@ class Ride(MongoMixIn.MongoMixIn):
         # Create ride_id if doesn't already exist
         ride_id = doc.get(klass.A_RIDE_ID)       
         if not ride_id:                          
-            ride_id = str(uuid.uuid4().hex)
+            ride_id = uuid.uuid4().hex
         spec = {klass.A_RIDE_ID:ride_id}        
         
         # Convert time into datetime and create expiry, if doesn't already exist

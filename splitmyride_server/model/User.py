@@ -31,7 +31,7 @@ class User(MongoMixIn.MongoMixIn):
 
         user_id = doc.get(klass.A_USER_ID)
         if not user_id:
-            user_id = str(uuid.uuid4())
+            user_id = uuid.uuid4().hex
         spec = {klass.A_USER_ID:user_id}
 
         try:

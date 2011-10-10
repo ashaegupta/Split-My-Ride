@@ -24,6 +24,7 @@ class UserHelper(object):
         if not user:
             return ApiResponse.USER_NOT_FOUND
         else:
+            del user[User.A_OBJECT_ID]
             return user
         
     
