@@ -115,7 +115,7 @@ class MongoMixIn(object):
     def update_by_object_id(klass, object_id, doc):
         objectId = klass.objectId_from_object_id_string(object_id)
         try:
-            klass.mdbc().(spec={klass.A_OBJECT_ID:objectId}, document={"$set": doc}, upsert=True, safe=True)
+            klass.mdbc().update(spec={klass.A_OBJECT_ID:objectId}, document={"$set": doc}, upsert=True, safe=True)
         except Exception, e:
             logging.error("Could NOT UPDATE document with id %s from model.%s Exception: %s" % (object_id, klass.__name__, e.message))
 
