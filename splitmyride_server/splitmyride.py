@@ -18,19 +18,22 @@ class UserHandler(tornado.web.RequestHandler):
     
     # Get user info
     def get(self):
-        if re.match('^/splitmyride/user.*$', self.request.uri):
-            self.write(self.get_user_by_phone)
+        user = {}
+        m = re.match('^/user/([\d].*)$', self.request.uri)
+        if m:
+            phone = m.group(1)
+            user = self.get_user_by_phone(phone)
+        self.write(user)
     
     # Get user info from database        
-    def get_user_by_phone(self):
-        phone = self.get_argument('phone')
+    def get_user_by_phone(self, phone):
         return UserHelper.get_user_by_phone(phone)
        
     # Add a new user with first_name, last_name, phone and image_url
     def post(self):
-        if re.match('^/splitmyride/user.*$', self.request.uri):
-            self.write(self.add_user())
-
+        resp = self.add_user()
+        self.write(resp)
+        
     # Add user to database
     def add_user(self):
         first_name = self.get_argument('first_name') 
@@ -44,8 +47,8 @@ class AddRideHandler(tornado.web.RequestHandler):
 
     # Add a new ride
     def post(self):
-        if re.match('^/splitmyride/addRide.*$', self.request.uri):
-            self.write(self.add_ride())
+        resp = self.add_ride()
+        self.write(resp)
 
     # Add user to database
     def add_ride(self):
@@ -55,28 +58,42 @@ class AddRideHandler(tornado.web.RequestHandler):
         time = self.get_argument('time')
         return RideHelper.add_ride(user_id, origin, destination, time)
 
-class GetMatches(tornado.web.RequestHandler):
+class MatchHandler(tornado.web.RequestHandler):
     
     def get(self):
-        if re.match('^/splitmyride/getMatches.*$', self.request.uri):
-            self.write(self.get_matches())
+        matches = {}
+        m = re.match('^/match/([0-9a-f]){32}$', self.request.uri)
+        if m:
+            ride_id = m.group(1)
+            matches = self.get_matches(ride_id)
+        self.write(matches)
+    
+    def post(self):
+        # TODO this is what gets called when someone wants to create a match
+        pass
             
-    def get_matches(self):
-        ride_id = self.get_argument('ride_id')
-        user_id = self.get_argument('user_id')
+    def get_matches(self, ride_id):
         return RideHelper.get_matches(ride_id)
-        
 
+class TerminalHandler(tornado.web.RequestHandler):
 
-
+    def get(self):
+        terminals = {}
+        m = re.match('^/terminal/([a-zA-Z]){3}$', self.request.uri)
+        if m:
+            airport = m.group(1)
+            terminals = self.get_terminals(airport)
+        self.write(terminals)
+    
+    def get_terminals(self, airport):
+        return TerminalHelper.get_terminals(airport)
 
 application = tornado.web.Application([
-    (r"/splitmyride/user.*", UserHandler),
-    (r"/splitmyride/addRide.*", AddRideHandler),
-    (r"/splitmyride/getMatches.*", GetPotentialMatchesHandler),
-    (r"/splitmyride/Match.*", RequestMatchHandler),
-    (r"/splitmyride/requestMatchResponse.*", RequestMatchResponseHandler),
-    (r"/splitmyride/terminalsInfo.*", TerminalsHandler),
+    (r"/", MainHandler),                 # get() - homepage - link to app
+    (r"/user/.*", UserHandler),          # get() - get user data; post() - create a user
+    (r"/ride/.*", RideHandler),          # post() - create or edit a ride
+    (r"/match/.*", MatchHandler),        # get() - list possible matches; post() - select a ride to match
+    (r"/terminal/.*", TerminalHandler),  # get() - get a list of terminals by airline
 ])
 
 if __name__ == "__main__":
@@ -85,3 +102,9 @@ if __name__ == "__main__":
     tornado.ioloop.IOLoop.instance().start()
     
 ## COnvert string into a dictionary
+
+# --- urls ---
+# user/:phone
+# - get() a user's data, e.g. http://splitmyri.de/user/6469152002
+# user/add
+# - post() to create a user, e.g. http://splitmyri.de/user/add with a POST body containing all the data to create the user

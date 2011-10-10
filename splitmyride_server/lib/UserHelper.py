@@ -1,7 +1,5 @@
-import simplejson
-
 from model.User import User
-
+from lib import ApiResponse
 
 class UserHelper(object):
     
@@ -13,13 +11,23 @@ class UserHelper(object):
             User.A_IMAGE_URL:image_url,
             User.A_PHONE:phone
         }
-        return simplejson.dumps(User.create_or_update_user(doc))
+        user_id = User.create_or_update_user(doc)
+        
+        if not user_id:
+            return ApiResponse.USER_COULD_NOT_CREATE
+        else:
+            return {User.A_USER_ID: user_id}
         
     @classmethod
     def get_user_by_phone(klass, phone):
-        return simplejson.dumps(User.get_user_by_phone(phone))
+        user = User.get_user_by_phone(phone)
+        if not user:
+            return ApiResponse.USER_NOT_FOUND
+        else:
+            return user
+        
     
-    # Change this to be for a list of users
     @classmethod
         def get_users_by_id(klass, users=[]):
-            return simplejson.dumps(User.get_users(users))
+            users = User.get_users(users)
+            return users

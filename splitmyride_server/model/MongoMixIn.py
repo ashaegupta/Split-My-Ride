@@ -73,7 +73,6 @@ class MongoMixIn(object):
                     r[c.get(key)] = c
         except: pass
         return r
-                
     
     @classmethod
     def list_from_cursor(klass, cursor):
