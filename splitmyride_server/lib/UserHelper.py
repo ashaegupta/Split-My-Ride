@@ -28,6 +28,6 @@ class UserHelper(object):
         
     
     @classmethod
-        def get_users_by_id(klass, users=[]):
-            users = User.get_users(users)
-            return users
+    def get_users_by_id(klass, users=[]):
+        users = User.get_users(users)
+        return users
