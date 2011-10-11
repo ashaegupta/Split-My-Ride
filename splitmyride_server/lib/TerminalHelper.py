@@ -10,4 +10,6 @@ class TerminalHelper(object):
         if not terminals:
             return ApiResponse.TERMINAL_NOT_FOUND
         else:
+            for airline in terminals:
+                del airline[Terminal.A_OBJECT_ID]
             return terminals
