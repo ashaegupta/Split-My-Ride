@@ -25,12 +25,13 @@ class Terminal(MongoMixIn.MongoMixIn):
         for airport, airlines in all_airports_info.iteritems():
             for airline, terminal in airlines.iteritems():
                 row_id = airport+"&"+airline
-                spec=row_id
-                doc = {"A_ID":row_id 
-                       "A_AIRPORT": airport,
-                       "A_AIRLINE": airline,
-                       "A_TERMINAL": terminal
-                        }
+                spec = row_id 
+                doc = {
+                    klass.A_ROW_ID:row_id 
+                    klass.A_AIRPORT: airport,
+                    klass.A_AIRLINE: airline,
+                    klass.A_TERMINAL: terminal
+                }
         try:
             klass.mdbc().update(spec=spec, document={"$set": doc}, upsert=True, safe=True) ## Assuming this will just update whatever is there
         except Exception, e:
@@ -40,10 +41,8 @@ class Terminal(MongoMixIn.MongoMixIn):
     @classmethod
     def get_terminal_info_by_airport(klass, airport):
         airlines = {}
-        try:
-            # Return all rows with A_AIRPORT = airport
-
-        if airline:
-                airlines{airlines}
+        spec = {klass.A_AIRPORT:airport}
+        docs = klass.mdbc().find(spec)
+        airlines = klass.list_from_cursor(docs)
         return airlines
       
