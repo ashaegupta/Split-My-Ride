@@ -2,6 +2,7 @@ import urllib2
 from BeautifulSoup import BeautifulSoup
 from model.Terminal import Terminal
 
+# this file name should be upper case
 def scrape_and_store_terminals(klass):
     all_airports_info = {}
     all_airports_info = klass.scrape_all_airports_info()
