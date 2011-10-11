@@ -7,8 +7,6 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
-import settings
-
 from model.User import User
 from lib.UserHelper import UserHelper
 
@@ -43,7 +41,7 @@ class UserHandler(tornado.web.RequestHandler):
         return UserHelper.add_user(first_name, last_name, image_url, phone)
         
 
-class AddRideHandler(tornado.web.RequestHandler):
+class RideHandler(tornado.web.RequestHandler):
 
     # Add a new ride
     def post(self):
@@ -89,7 +87,7 @@ class TerminalHandler(tornado.web.RequestHandler):
         return TerminalHelper.get_terminals(airport)
 
 application = tornado.web.Application([
-    (r"/", MainHandler),                 # get() - homepage - link to app
+    #(r"/", MainHandler),                 # get() - homepage - link to app
     (r"/user/.*", UserHandler),          # get() - get user data; post() - create a user
     (r"/ride/.*", RideHandler),          # post() - create or edit a ride
     (r"/match/.*", MatchHandler),        # get() - list possible matches; post() - select a ride to match
