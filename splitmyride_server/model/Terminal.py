@@ -28,7 +28,7 @@ class Terminal(MongoMixIn.MongoMixIn):
                 row_id = airport+"&"+airline
                 spec = row_id 
                 doc = {
-                    klass.A_ROW_ID:row_id 
+                    klass.A_ROW_ID:row_id,
                     klass.A_AIRPORT: airport,
                     klass.A_AIRLINE: airline,
                     klass.A_TERMINAL: terminal
