@@ -6,15 +6,11 @@ def scrape_and_store_terminals(klass):
     all_airports_info = {}
     all_airports_info = klass.scrape_all_airports_info()
     response = Terminal.store_terminal_info(all_airports_info)
-    if response.get("status") == 0 {
-        ## What should I do if there is an error here?
-        ## Log 
-    }
 
 def scrape_all_airports_info(klass):
     all_airports_info = {}
     for airport in klass.airports:
-        airlines = klass._get_airlines_by_airport(airport)    
+        airlines = klass._get_airlines_by_airport(airport)
         all_airports_info[airport] = airlines
     return all_airports_info
 

@@ -20,6 +20,7 @@ class Terminal(MongoMixIn.MongoMixIn):
     
     @classmethod
     def store_terminal_info(klass, all_airports_info=None):      
+        success = True
         if not all_airports_info: all_airports_info = {}
         
         for airport, airlines in all_airports_info.iteritems():
@@ -32,11 +33,11 @@ class Terminal(MongoMixIn.MongoMixIn):
                     klass.A_AIRLINE: airline,
                     klass.A_TERMINAL: terminal
                 }
-        try:
-            klass.mdbc().update(spec=spec, document={"$set": doc}, upsert=True, safe=True) ## Assuming this will just update whatever is there
-        except Exception, e:
-            return False
-        return row_id
+                try:
+                    klass.mdbc().update(spec=spec, document={"$set": doc}, upsert=True, safe=True) ## Assuming this will just update whatever is there
+                except Exception, e:
+                    success = False
+        return success
 
     @classmethod
     def get_terminal_info_by_airport(klass, airport):
