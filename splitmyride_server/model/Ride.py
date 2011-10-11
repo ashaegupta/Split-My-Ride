@@ -25,7 +25,7 @@ class Ride(MongoMixIn.MongoMixIn):
     
     STATUS_PENDING          = 0
     STATUS_MATCHED          = 1
-    STATUS_???              = 2     #TODO ADD all possible states of being matched
+    #STATUS_???              = 2     #TODO ADD all possible states of being matched
     STATUS_EXPIRED          = 3
 
     ### Do I need to do this?
@@ -73,7 +73,7 @@ class Ride(MongoMixIn.MongoMixIn):
         ride_to_match = klass.mdbc().find_one(spec)                
         
         if ride_to_match:
-        
+	    pass 
         # Find matches 
             # rides that are minimum matches
             # NOT THIS RIDE_ID

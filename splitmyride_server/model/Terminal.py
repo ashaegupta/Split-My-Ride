@@ -8,7 +8,6 @@ class Terminal(MongoMixIn.MongoMixIn):
     MONGO_DB_NAME           = 'terminal'
     MONGO_COLLECTION_NAME   = 'terminal_c'
     
-    A_ROW_ID                = 'id'
     A_AIRPORT               = 'airport'                          
     A_AIRLINE               = 'airline'
     A_TERMINAL              = 'terminal'
@@ -25,17 +24,15 @@ class Terminal(MongoMixIn.MongoMixIn):
         
         for airport, airlines in all_airports_info.iteritems():
             for airline, terminal in airlines.iteritems():
-                row_id = airport+"&"+airline
-                spec = row_id 
                 doc = {
-                    klass.A_ROW_ID:row_id,
                     klass.A_AIRPORT: airport,
                     klass.A_AIRLINE: airline,
                     klass.A_TERMINAL: terminal
                 }
                 try:
-                    klass.mdbc().update(spec=spec, document={"$set": doc}, upsert=True, safe=True) ## Assuming this will just update whatever is there
+                    klass.mdbc().update(spec=doc, document={"$set": doc}, upsert=True, safe=True) ## Assuming this will just update whatever is there
                 except Exception, e:
+                    print "error: %s. locals: %s" % (e, locals())
                     success = False
         return success
 
