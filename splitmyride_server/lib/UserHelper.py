@@ -29,6 +29,12 @@ class UserHelper(object):
         
     
     @classmethod
-    def get_users_by_id(klass, users=[]):
-        users = User.get_users(users)
+    def get_users_by_id(klass, user_ids):
+        users = User.get_users_by_user_ids(user_ids)
+	if not users:
+	    return ApiResponse.USER_NOT_FOUND
+	else:
+	    for user in users:
+	 	del user[User.A_OBJECT_ID]
+
         return users

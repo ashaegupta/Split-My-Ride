@@ -51,8 +51,8 @@ class User(MongoMixIn.MongoMixIn):
     def get_users_by_user_ids(klass, user_ids):
         users_info = {}
         
-        query = {User.A_USER_ID:{"$in":user_ids}}
-        cursor = User.mdbc().find(query)
-        users_info = dict_from_cursor(cursor, key=USER.A_USER_ID)
+        query = {klass.A_USER_ID:{"$in":user_ids}}
+        cursor = klass.mdbc().find(query)
+        users_info = klass.dict_from_cursor(cursor, key=klass.A_USER_ID)
         
         return users_info
