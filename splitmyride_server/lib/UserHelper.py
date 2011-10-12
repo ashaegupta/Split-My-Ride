@@ -34,7 +34,7 @@ class UserHelper(object):
 	if not users:
 	    return ApiResponse.USER_NOT_FOUND
 	else:
-	    for user in users:
-	 	del user[User.A_OBJECT_ID]
+	    for user_id in user_ids:
+	 	del users[user_id][User.A_OBJECT_ID]
 
         return users
