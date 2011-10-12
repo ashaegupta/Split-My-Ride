@@ -3,7 +3,8 @@ sys.path.append("../")
 import logging
 import uuid
 import datetime
-import MongoMixIn
+import time
+
 
 class Ride(MongoMixIn.MongoMixIn):    
     MONGO_DB_NAME           = 'ride'
@@ -17,9 +18,9 @@ class Ride(MongoMixIn.MongoMixIn):
     A_DESTINATION_2         = 'destination_2'
     A_DESTINATION_3         = 'destination_3'
     A_DESTINATION_4         = 'destination_4'
-    A_TIME_AS_STRING        = 'time_st'
-    A_TIME_AS_DATETIME      = 'time_dt'
-    A_EXP_DATE              = 'exp_date'
+    A_TIMESTAMP_CREATED     = 'ts_c'
+    A_TIMESTAMP_DEPARTURE   = 'ts_d'
+    A_TIMESTAMP_EXPIRES     = 'ts_e'
     A_MATCH                 = 'match' #0 if odoes not have a match, #RIDE_ID of match, if match exists
     A_STATUS                = 'status'
     
@@ -27,6 +28,8 @@ class Ride(MongoMixIn.MongoMixIn):
     STATUS_MATCHED          = 1
     #STATUS_???              = 2     #TODO ADD all possible states of being matched
     STATUS_EXPIRED          = 3
+    
+    DEFAULT_EXPIRY_WINDOW_IN_SECONDS = 60*60    # one hour
 
     ### Do I need to do this?
     @classmethod
@@ -41,15 +44,15 @@ class Ride(MongoMixIn.MongoMixIn):
         ride_id = doc.get(klass.A_RIDE_ID)       
         if not ride_id:                          
             ride_id = uuid.uuid4().hex
-        spec = {klass.A_RIDE_ID:ride_id}        
+        spec = {klass.A_RIDE_ID:ride_id}
+        
+        # Store the time that this object was created, if it does not already exist
+        if not doc.get(klass.A_TIMESTAMP_CREATED):
+            doc[klass.A_TIMESTAMP_CREATED] = int(time.time())
         
         # Convert time into datetime and create expiry, if doesn't already exist
-        time_dt = doc.get(klass.A_TIME_AS_DATETIME)
-        if not time_dt:
-            time_dt = datetime.datetime.strptime(doc.get(klass.A_TIME_AS_STRING), "%Y-%m-%d %H:%M")
-            exp_date = time_dt + datetime.timedelta(hours=2)
-            doc[klass.A_TIME_AS_DATETIME] = time_dt
-            doc[klass.A_EXP_DATE] = exp_date
+        if not doc.get(klass.A_TIMESTAMP_EXPIRES):
+            doc[klass.A_TIMESTAMP_EXPIRES] = doc.get(klass.A_TIMESTAMP_DEPARTURE) + DEFAULT_EXPIRY_WINDOW_IN_SECONDS
         
         # Set match to be 0 if doesn't already exist
         match = doc.get(klass.A_MATCH)

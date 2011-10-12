@@ -5,7 +5,7 @@ import simplejson
 class RideHelper(object):
     
     @classmethod
-    def add_ride(klass, user_id, origin, destination, time):
+    def add_ride(klass, user_id, origin, destination, departure_time):
         
         ## Convert the origin and destination dictionaries into a string
         origin_dict = {}
@@ -28,7 +28,7 @@ class RideHelper(object):
             Ride.A_DESTINATION_2:destination_2,
             Ride.A_DESTINATION_3:destination_3,
             Ride.A_DESTINATION_4:destination_4,
-            Ride.A_TIME_AS_STRING:time
+            Ride.A_TIMESTAMP_DEPARTURE:departure_time
         }        
 
         ride_id = Ride.create_or_update_ride(doc)
@@ -47,9 +47,8 @@ class RideHelper(object):
         # make one less call to a database?
         # 3. I know dictionaries are not ordered, but how can I rank the entries? Another key=value?
         # 4. How do I make the query?
-        # 5. 
+        # 5.
         
-        matches = {}
         rides = {}
         users = {}
         user_ids = []
@@ -59,23 +58,14 @@ class RideHelper(object):
         
         # Get list of user_ids in rides  
         for ride in rides:
-            user_id = ride.get('user_id')
-            user_ids.append(user_id)
+            user_id = ride.get(Ride.A_USER_ID) 
+            if user_id:
+                user_ids.append(user_id)
         
         # Make batch call to get all user info
         users = User.get_by_user_ids(user_ids)
         
         # Create matches dict that holds ride and user info
-        for ride in rides:
-            ride_status = ride.get("status") 
-            if ride_status == 1:
-                user_id = ride.get("user_id")
-                user = users.get(user_id)
-                
-                if user and user.get("status") == 1:
-                    ride_id = ride.get("ride_id")
-                    match_key = ride_id+"&"+user_id             ## Can I actually make the key, the best match rank?
-                    
-                    match[match_key] = {ride_id:ride, user_id:user}
+        # Add user object into the ride
         
-        return matches
+        return rides
