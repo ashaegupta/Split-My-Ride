@@ -10,16 +10,23 @@ class RideHelper(object):
         origin_dict = {}
         destination_dict = {}
         origin_dict = simplejson.loads(origin)
-        desitination_dict = simplejson.loads(destination)
-        
+        origin_1 = origin_dict.get('origin_1')
+	origin_2 = origin_dict.get('origin_2')
+
+	destination_dict = simplejson.loads(destination)
+	destination_1 = destination_dict.get('destination_1')
+	destination_2 = destination_dict.get('destination_2')
+	destination_3 = destination_dict.get('destination_3')
+	destination_4 = destination_dict.get('destination_4')
+     
         doc = {
-            Ride.A_USER_ID:user_id
-            Ride.A_ORIGIN_1:origin_dict.get('origin_1'),
-            Ride.A_ORIGIN_2:origin_dict.get('origin_2'),
-            Ride.A_DESTINATION_1:destination_dict.get('destination_1'),
-            Ride.A_DESTINATION_2:destination_dict.get('destination_2'),
-            Ride.A_DESTINATION_3:destination_dict.get('destination_3'),
-            Ride.A_DESTINATION_4:destination_dict.get('destination_4'),
+            Ride.A_USER_ID:user_id,
+            Ride.A_ORIGIN_1:origin_1,
+            Ride.A_ORIGIN_2:origin_2,
+            Ride.A_DESTINATION_1:destination_1,
+            Ride.A_DESTINATION_2:destination_2,
+            Ride.A_DESTINATION_3:destination_3,
+            Ride.A_DESTINATION_4:destination_4,
             Ride.A_TIME_ST:time
         }        
 
