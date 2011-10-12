@@ -44,11 +44,11 @@ class Ride(MongoMixIn.MongoMixIn):
         spec = {klass.A_RIDE_ID:ride_id}        
         
         # Convert time into datetime and create expiry, if doesn't already exist
-        time_dt = doc.get(klass.A_TIME_DT)
+        time_dt = doc.get(klass.A_TIME_AS_DATETIME)
         if not time_dt:
-            time_dt = datetime.datetime.strptime(doc.get(klass.A_TIME_ST), "%Y-%m-%d %H:%M")
+            time_dt = datetime.datetime.strptime(doc.get(klass.A_TIME_AS_STRING), "%Y-%m-%d %H:%M")
             exp_date = time_dt + datetime.timedelta(hours=2)
-            doc[klass.A_TIME_DT] = time_dt
+            doc[klass.A_TIME_AS_DATETIME] = time_dt
             doc[klass.A_EXP_DATE] = exp_date
         
         # Set match to be 0 if doesn't already exist

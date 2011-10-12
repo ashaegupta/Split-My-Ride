@@ -1,5 +1,6 @@
 from model.Ride import Ride
 from model.User import User
+import simplejson
 
 class RideHelper(object):
     
@@ -27,7 +28,7 @@ class RideHelper(object):
             Ride.A_DESTINATION_2:destination_2,
             Ride.A_DESTINATION_3:destination_3,
             Ride.A_DESTINATION_4:destination_4,
-            Ride.A_TIME_ST:time
+            Ride.A_TIME_AS_STRING:time
         }        
 
         ride_id = Ride.create_or_update_ride(doc)
