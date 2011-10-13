@@ -52,9 +52,10 @@ class RideHandler(tornado.web.RequestHandler):
     def add_ride(self):
         user_id = self.get_argument('user_id') 
         origin = self.get_argument('origin')
-        destination = self.get_argument('destination') 
-        time = self.get_argument('time')
-        return RideHelper.add_ride(user_id, origin, destination, time)
+        dest_lat = self.get_argument('dest_lat')
+        dest_lon = self.get_argument('dest_lon') 
+        departure_time = self.get_argument('departure_time')
+        return RideHelper.add_ride(user_id, origin, dest_lat, dest_lon, departure_time)
 
 class MatchHandler(tornado.web.RequestHandler):
     

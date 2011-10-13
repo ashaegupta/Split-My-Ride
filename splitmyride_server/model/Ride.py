@@ -14,27 +14,33 @@ class Ride(MongoMixIn.MongoMixIn):
     A_USER_ID               = 'user_id'                          
     A_ORIGIN_1              = 'origin_1'
     A_ORIGIN_2              = 'origin_2'
-    A_DESTINATION_1         = 'destination_1'
-    A_DESTINATION_2         = 'destination_2'
-    A_DESTINATION_3         = 'destination_3'
-    A_DESTINATION_4         = 'destination_4'
+    A_DESTINATION_LAT       = 'dest_lat'
+    A_DESTINATION_LON       = 'dest_lon'
+    A_LOC                   = 'loc'             # loc = [float(lat), float(lon)]
     A_TIMESTAMP_CREATED     = 'ts_c'
     A_TIMESTAMP_DEPARTURE   = 'ts_d'
     A_TIMESTAMP_EXPIRES     = 'ts_e'
-    A_MATCH                 = 'match' #0 if odoes not have a match, #RIDE_ID of match, if match exists
+    A_MATCH                 = 'match'
     A_STATUS                = 'status'
     
     STATUS_PENDING          = 0
     STATUS_MATCHED          = 1
-    #STATUS_???              = 2     #TODO ADD all possible states of being matched
-    STATUS_EXPIRED          = 3
+    STATUS_EXPIRED          = 2
     
-    DEFAULT_EXPIRY_WINDOW_IN_SECONDS = 60*60    # one hour
+    DEFAULT_EXPIRY_WINDOW_IN_SECONDS    = 60*60    # one hour
+    MAX_WAIT_TIME_IN_SECONDS            = 15*60    # 15 mins
+    
+    MILES_PER_DEGREE                    = 69.11
+    MAX_DISTANCE_IN_MILES               = 2
+    MAX_DISTANCE_IN_DEGREES             = MAX_DISTANCE_IN_DEGREES / MILES_PER_DEGREE
+    
 
     ### Do I need to do this?
     @classmethod
     def setup_mongo_indexes(klass):
+        from pymongo import GEO2D
         coll = klass.mdbc()
+        coll.ensure_index([ (klass.A_LOC, GEO2D)], unique=False)
     
     @classmethod
     def create_or_update_ride(klass, doc=None):      
@@ -46,19 +52,26 @@ class Ride(MongoMixIn.MongoMixIn):
             ride_id = uuid.uuid4().hex
         spec = {klass.A_RIDE_ID:ride_id}
         
+        # Create loc
+        lat = doc.get(klass.A_DESTINATION_LAT)
+        lon = doc.get(klass.A_DESTINATION_LON)
+        if lat and lon:
+            doc[klass.A_LOC] = [float(lat), float(lon)]
+            del doc[klass.A_DESTINATION_LAT]
+            del doc[klass.A_DESTINATION_LON]
+        
         # Store the time that this object was created, if it does not already exist
         if not doc.get(klass.A_TIMESTAMP_CREATED):
             doc[klass.A_TIMESTAMP_CREATED] = int(time.time())
         
         # Convert time into datetime and create expiry, if doesn't already exist
         if not doc.get(klass.A_TIMESTAMP_EXPIRES):
-            doc[klass.A_TIMESTAMP_EXPIRES] = doc.get(klass.A_TIMESTAMP_DEPARTURE) + DEFAULT_EXPIRY_WINDOW_IN_SECONDS
+            doc[klass.A_TIMESTAMP_EXPIRES] = doc.get(klass.A_TIMESTAMP_DEPARTURE) + klass.DEFAULT_EXPIRY_WINDOW_IN_SECONDS
         
-        # Set match to be 0 if doesn't already exist
-        match = doc.get(klass.A_MATCH)
-        if not match:
-            doc[klass.A_MATCH] = 0
-                
+        # Initiate status to pending if it does not exist
+        if not doc[klass.A_STATUS]:
+            doc[klass.A_STATUS] = klass.STATUS_PENDING
+            
         try:
             klass.mdbc().update(spec=spec, document={"$set": doc}, upsert=True, safe=True)
         except Exception, e:
@@ -69,24 +82,36 @@ class Ride(MongoMixIn.MongoMixIn):
 
     @classmethod
     def get_matches(klass, ride_id):
-        rides = {}
+        rides = []
         
         # Get info for the ride to match
         spec = {klass.A_RIDE_ID:ride_id}
         ride_to_match = klass.mdbc().find_one(spec)                
         
         if ride_to_match:
-	    pass 
-        # Find matches 
-            # rides that are minimum matches
-            # NOT THIS RIDE_ID
-            # DON"T HAVE AN EXPIRED TIME
-            # HAVE A TIME THAT IS WITHIN AN HOUR OF THIS LEAVE TIME
-            # ARE LEAVING FROM THE ORIGIN_1 and ORIGIN_2
-            # ARE GOING TO THE SAME DESTINATION_1 and DESTINATION_2
-            # 
+            query = {
+                # status pending
+                klass.A_STATUS:klass.STATUS_PENDING,
+                # must match origin exactly
+                klass.A_ORIGIN_1:ride_to_match.get(klass.A_ORIGIN_1),
+                klass.A_ORIGIN_2:ride_to_match.get(klass.A_ORIGIN_2),
+                # lat and lon
+                klass.A_LOC: {
+                    "$near":ride_to_match.get(klass.A_LOC),
+                    "$maxDistance":klass.MAX_DISTANCE_IN_DEGREES
+                },
+                # add time window
+                klass.A_TIMESTAMP_DEPARTURE: {
+                    "$gt":ride_to_match.get(klass.A_TIMESTAMP_DEPARTURE) - klass.MAX_WAIT_TIME_IN_SECONDS
+                    "$lte":ride_to_match.get(klass.A_TIMESTAMP_DEPARTURE) + klass.MAX_WAIT_TIME_IN_SECONDS
+                }
+            }
         
-        # May dict rides, where key=ride_id and value={ride_info}
+        ## TODO LOOK UP COMOBO QUERIES
+        
+        cursor = klass.mdbc().find(query)
+        rides = klass.list_from_cursor(cursor)
+
         return rides
     
     @classmethod

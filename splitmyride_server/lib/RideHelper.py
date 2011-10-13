@@ -5,31 +5,23 @@ import simplejson
 class RideHelper(object):
     
     @classmethod
-    def add_ride(klass, user_id, origin, destination, departure_time):
+    def add_ride(klass, user_id, origin, dest_lat, dest_lon, departure_time):
         
         ## Convert the origin and destination dictionaries into a string
         origin_dict = {}
         destination_dict = {}
         origin_dict = simplejson.loads(origin)
         origin_1 = origin_dict.get('origin_1')
-	origin_2 = origin_dict.get('origin_2')
+        origin_2 = origin_dict.get('origin_2')
 
-	destination_dict = simplejson.loads(destination)
-	destination_1 = destination_dict.get('destination_1')
-	destination_2 = destination_dict.get('destination_2')
-	destination_3 = destination_dict.get('destination_3')
-	destination_4 = destination_dict.get('destination_4')
-     
         doc = {
             Ride.A_USER_ID:user_id,
             Ride.A_ORIGIN_1:origin_1,
             Ride.A_ORIGIN_2:origin_2,
-            Ride.A_DESTINATION_1:destination_1,
-            Ride.A_DESTINATION_2:destination_2,
-            Ride.A_DESTINATION_3:destination_3,
-            Ride.A_DESTINATION_4:destination_4,
+            Ride.A_DESTINATION_LAT:dest_lat,
+            Ride.A_DESTINATION_LON:dest_lon,
             Ride.A_TIMESTAMP_DEPARTURE:departure_time
-        }        
+        }
 
         ride_id = Ride.create_or_update_ride(doc)
 
@@ -40,16 +32,7 @@ class RideHelper(object):
         
     @classmethod
     def get_matches(klass, ride_id):
-        
-        # 1. Review logic here.
-        # 2. I'm using two different databases here user and rides, but should I also store all the
-        # user info associated with each ride in the ride database, to avoid having to do a database merge and to 
-        # make one less call to a database?
-        # 3. I know dictionaries are not ordered, but how can I rank the entries? Another key=value?
-        # 4. How do I make the query?
-        # 5.
-        
-        rides = {}
+        rides = []
         users = {}
         user_ids = []
                 
@@ -65,7 +48,16 @@ class RideHelper(object):
         # Make batch call to get all user info
         users = User.get_by_user_ids(user_ids)
         
-        # Create matches dict that holds ride and user info
-        # Add user object into the ride
+        # Get the rides that match
+        rides = Ride.get_matches(ride_id)
         
-        return rides
+        # Append each ride with user info
+        if not rides:
+            return ApiResponse.RIDE_COULD_NOT_CREATE
+        
+        else:
+            for ride in rides:
+                del ride[klass.A_OBJECT_ID]
+                user_id = ride.get(Ride.A_USER_ID)
+                ride["user"] = users.get(user_id)
+            return rides
