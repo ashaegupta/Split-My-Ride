@@ -31,6 +31,14 @@ class RideHelper(object):
             return ride_id
         
     @classmethod
+    def get_ride(klass, ride_id):
+        ride = Ride.get_ride(ride_id)
+        if not ride:
+            return ApiResponse.RIDE_NOT_FOUND
+        else:
+            return ride
+    
+    @classmethod
     def get_matches(klass, ride_id):
         rides = []
         users = {}
@@ -53,11 +61,11 @@ class RideHelper(object):
         
         # Append each ride with user info
         if not rides:
-            return ApiResponse.RIDE_COULD_NOT_CREATE
+            return ApiResponse.RIDE_NO_MATCHES_FOUND
         
         else:
             for ride in rides:
-                del ride[klass.A_OBJECT_ID]
+                del ride[Ride.A_OBJECT_ID]
                 user_id = ride.get(Ride.A_USER_ID)
                 ride["user"] = users.get(user_id)
             return rides

@@ -4,7 +4,7 @@ import logging
 import uuid
 import datetime
 import time
-
+import MongoMixIn
 
 class Ride(MongoMixIn.MongoMixIn):    
     MONGO_DB_NAME           = 'ride'
@@ -32,7 +32,7 @@ class Ride(MongoMixIn.MongoMixIn):
     
     MILES_PER_DEGREE                    = 69.11
     MAX_DISTANCE_IN_MILES               = 2
-    MAX_DISTANCE_IN_DEGREES             = MAX_DISTANCE_IN_DEGREES / MILES_PER_DEGREE
+    MAX_DISTANCE_IN_DEGREES             = MAX_DISTANCE_IN_MILES / MILES_PER_DEGREE
     
 
     ### Do I need to do this?
@@ -69,7 +69,7 @@ class Ride(MongoMixIn.MongoMixIn):
             doc[klass.A_TIMESTAMP_EXPIRES] = doc.get(klass.A_TIMESTAMP_DEPARTURE) + klass.DEFAULT_EXPIRY_WINDOW_IN_SECONDS
         
         # Initiate status to pending if it does not exist
-        if not doc[klass.A_STATUS]:
+        if not doc.get(klass.A_STATUS):
             doc[klass.A_STATUS] = klass.STATUS_PENDING
             
         try:
@@ -81,13 +81,19 @@ class Ride(MongoMixIn.MongoMixIn):
 
 
     @classmethod
+    def get_ride(klass, ride_id):
+        spec = {klass.A_RIDE_ID:ride_id}
+        ride_to_match = klass.mdbc().find_one(spec)
+        return ride_to_match
+    
+    @classmethod
     def get_matches(klass, ride_id):
         rides = []
         
         # Get info for the ride to match
-        spec = {klass.A_RIDE_ID:ride_id}
-        ride_to_match = klass.mdbc().find_one(spec)                
+        ride_to_match = klass.get_ride(ride_id)
         
+        # Run a query to find matches
         if ride_to_match:
             query = {
                 # status pending
@@ -102,12 +108,12 @@ class Ride(MongoMixIn.MongoMixIn):
                 },
                 # add time window
                 klass.A_TIMESTAMP_DEPARTURE: {
-                    "$gt":ride_to_match.get(klass.A_TIMESTAMP_DEPARTURE) - klass.MAX_WAIT_TIME_IN_SECONDS
+                    "$gt":ride_to_match.get(klass.A_TIMESTAMP_DEPARTURE) - klass.MAX_WAIT_TIME_IN_SECONDS,
                     "$lte":ride_to_match.get(klass.A_TIMESTAMP_DEPARTURE) + klass.MAX_WAIT_TIME_IN_SECONDS
                 }
             }
         
-        ## TODO LOOK UP COMOBO QUERIES
+        ## TODO LOOK UP COMBO QUERIES
         
         cursor = klass.mdbc().find(query)
         rides = klass.list_from_cursor(cursor)

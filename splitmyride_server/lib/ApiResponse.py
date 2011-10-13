@@ -17,7 +17,7 @@ TERMINAL_NOT_FOUND = {
     'message': 'Could not find terminal information for this airport'
 }
 
-RIDE_NO_MATCHES = {
+RIDE_NO_MATCHES_FOUND = {
     'error':1,
-    'message': 'Could not find terminal information for this airport'
+    'message': 'Could not find any matches at this time. Check back later!'
 }

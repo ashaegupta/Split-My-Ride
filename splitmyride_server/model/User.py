@@ -5,8 +5,6 @@ import uuid
 import datetime
 import MongoMixIn
 
-
-
 class User(MongoMixIn.MongoMixIn):    
     MONGO_DB_NAME           = 'user'
     MONGO_COLLECTION_NAME   = 'user_c'
