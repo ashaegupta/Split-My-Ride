@@ -3,10 +3,15 @@ sys.path.append("../")
 import logging
 import uuid
 import MongoMixIn
+import splitmyride_settings
 
 class Terminal(MongoMixIn.MongoMixIn):    
     MONGO_DB_NAME           = 'terminal'
-    MONGO_COLLECTION_NAME   = 'terminal_c'
+    
+    if splitmyride_settings.ON_TEST:
+        MONGO_COLLECTION_NAME   = 'terminal_c_test'
+    else:
+        MONGO_COLLECTION_NAME   = 'terminal_c'
     
     A_AIRPORT               = 'airport'                          
     A_AIRLINE               = 'airline'

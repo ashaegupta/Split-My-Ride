@@ -1,12 +1,13 @@
 from model.Ride import Ride
 from model.User import User
 import simplejson
+from lib import ApiResponse
+from lib.UserHelper import UserHelper
 
 class RideHelper(object):
     
     @classmethod
     def add_ride(klass, user_id, origin, dest_lat, dest_lon, departure_time):
-        
         ## Convert the origin and destination dictionaries into a string
         origin_dict = {}
         destination_dict = {}
@@ -36,6 +37,7 @@ class RideHelper(object):
         if not ride:
             return ApiResponse.RIDE_NOT_FOUND
         else:
+            del ride[Ride.A_OBJECT_ID]
             return ride
     
     @classmethod
@@ -49,12 +51,12 @@ class RideHelper(object):
         
         # Get list of user_ids in rides  
         for ride in rides:
-            user_id = ride.get(Ride.A_USER_ID) 
+            user_id = ride.get(Ride.A_USER_ID)
             if user_id:
                 user_ids.append(user_id)
         
         # Make batch call to get all user info
-        users = User.get_by_user_ids(user_ids)
+        users = UserHelper.get_users_by_id(user_ids)
         
         # Get the rides that match
         rides = Ride.get_matches(ride_id)

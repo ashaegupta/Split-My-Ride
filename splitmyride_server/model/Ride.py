@@ -5,10 +5,15 @@ import uuid
 import datetime
 import time
 import MongoMixIn
+import splitmyride_settings
 
 class Ride(MongoMixIn.MongoMixIn):    
     MONGO_DB_NAME           = 'ride'
-    MONGO_COLLECTION_NAME   = 'ride_c'
+    
+    if splitmyride_settings.ON_TEST:
+        MONGO_COLLECTION_NAME = 'ride_c_test'
+    else:
+        MONGO_COLLECTION_NAME = 'ride_c'
     
     A_RIDE_ID               = 'ride_id'
     A_USER_ID               = 'user_id'                          
@@ -35,7 +40,8 @@ class Ride(MongoMixIn.MongoMixIn):
     MAX_DISTANCE_IN_DEGREES             = MAX_DISTANCE_IN_MILES / MILES_PER_DEGREE
     
 
-    ### Do I need to do this?
+    # This method sets-up the indexes for the database, it needs to be run once from the shell for
+    # each instance of the database
     @classmethod
     def setup_mongo_indexes(klass):
         from pymongo import GEO2D
@@ -43,7 +49,7 @@ class Ride(MongoMixIn.MongoMixIn):
         coll.ensure_index([ (klass.A_LOC, GEO2D)], unique=False)
     
     @classmethod
-    def create_or_update_ride(klass, doc=None):      
+    def create_or_update_ride(klass, doc=None):
         if not doc: doc = {}
         
         # Create ride_id if doesn't already exist
@@ -90,12 +96,20 @@ class Ride(MongoMixIn.MongoMixIn):
     def get_matches(klass, ride_id):
         rides = []
         
+        print ride_id
+        
         # Get info for the ride to match
         ride_to_match = klass.get_ride(ride_id)
+        print "ride_to_match"
+        print ride_to_match
         
         # Run a query to find matches
         if ride_to_match:
             query = {
+                # not the current ride
+                klass.A_RIDE_ID:{
+                    "$ne":ride_id
+                },
                 # status pending
                 klass.A_STATUS:klass.STATUS_PENDING,
                 # must match origin exactly
@@ -113,16 +127,12 @@ class Ride(MongoMixIn.MongoMixIn):
                 }
             }
         
-        ## TODO LOOK UP COMBO QUERIES
-        
-        cursor = klass.mdbc().find(query)
-        rides = klass.list_from_cursor(cursor)
+            ## TODO LOOK UP COMBO QUERIES
+            cursor = klass.mdbc().find(query)
+            rides = klass.list_from_cursor(cursor)
 
         return rides
     
     @classmethod
     def clear_expired_rides(klass):
-        
-        today = datetime.datetime.now() 
-        
-       
+        today = datetime.datetime.now()

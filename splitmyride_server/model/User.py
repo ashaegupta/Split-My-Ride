@@ -4,10 +4,15 @@ import logging
 import uuid
 import datetime
 import MongoMixIn
+import splitmyride_settings
 
 class User(MongoMixIn.MongoMixIn):    
     MONGO_DB_NAME           = 'user'
-    MONGO_COLLECTION_NAME   = 'user_c'
+    
+    if splitmyride_settings.ON_TEST:
+        MONGO_COLLECTION_NAME = 'user_c_test'
+    else:
+        MONGO_COLLECTION_NAME = 'user_c'
     
     A_USER_ID               = 'user_id'
     A_FIRST_NAME            = 'first_name'

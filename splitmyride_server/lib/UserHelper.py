@@ -4,7 +4,7 @@ from lib import ApiResponse
 class UserHelper(object):
     
     @classmethod
-    def add_user(klass, first_name, last_name, image_url, phone):
+    def add_user(klass, first_name, last_name, phone, image_url):
         doc = {
             User.A_FIRST_NAME:first_name,
             User.A_LAST_NAME:last_name,
@@ -30,11 +30,19 @@ class UserHelper(object):
     
     @classmethod
     def get_users_by_id(klass, user_ids):
+        print "^"*100
+        print user_ids
+        print "^"*100
         users = User.get_users_by_user_ids(user_ids)
-	if not users:
-	    return ApiResponse.USER_NOT_FOUND
-	else:
-	    for user_id in user_ids:
-	 	del users[user_id][User.A_OBJECT_ID]
-
-        return users
+        print "*"*100
+        print users
+        print "*"*100
+        if not users:
+            return ApiResponse.USER_NOT_FOUND
+        else:
+            for uid, user in users.iteritems():
+                try:
+                    del users[uid][User.A_OBJECT_ID]
+                except:
+                    print "problem with user_id", user_id
+            return users
