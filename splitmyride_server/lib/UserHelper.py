@@ -30,19 +30,10 @@ class UserHelper(object):
     
     @classmethod
     def get_users_by_id(klass, user_ids):
-        print "^"*100
-        print user_ids
-        print "^"*100
         users = User.get_users_by_user_ids(user_ids)
-        print "*"*100
-        print users
-        print "*"*100
         if not users:
             return ApiResponse.USER_NOT_FOUND
         else:
             for uid, user in users.iteritems():
-                try:
-                    del users[uid][User.A_OBJECT_ID]
-                except:
-                    print "problem with user_id", user_id
+                del users[uid][User.A_OBJECT_ID]
             return users
