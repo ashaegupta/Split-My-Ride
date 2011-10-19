@@ -10,6 +10,7 @@ import tornado.web
 from model.User import User
 from lib.UserHelper import UserHelper
 
+from lib import ApiResponse
 
 ## Sets up all the HTTP Get / Post requests using Tornado, listening on port 80
 class UserHandler(tornado.web.RequestHandler):
@@ -55,7 +56,7 @@ class RideHandler(tornado.web.RequestHandler):
         dest_lon = self.get_argument('dest_lon') 
         dest_lat = self.get_argument('dest_lat')
         departure_time = self.get_argument('departure_time')
-        return RideHelper.add_ride(user_id, origin, dest_lon, dest_lat, departure_time)
+        return RideHelper.create_or_update_ride(user_id, origin, dest_lon, dest_lat, departure_time)
 
 class MatchHandler(tornado.web.RequestHandler):
     
@@ -68,9 +69,16 @@ class MatchHandler(tornado.web.RequestHandler):
         self.write(matches)
     
     def post(self):
-        # TODO this is what gets called when someone wants to create a match
-        pass
-            
+        resp = self.do_match_action()
+        pass self.write(resp)
+        
+    # Request, accept or decline a match
+    def do_match_action():
+        action = self.get_argument('action')
+        curr_user_ride_id = self.get_argument('curr_user_ride_id')
+        match_ride_id = self.get_argument('match_ride_id')
+        return RideHelper.do_SMS_action(action, curr_user_ride_id, match_ride_id)
+        
     def get_matches(self, ride_id):
         return RideHelper.get_matches(ride_id)
 
@@ -91,7 +99,7 @@ application = tornado.web.Application([
     #(r"/", MainHandler),                 # get() - homepage - link to app
     (r"/user/.*", UserHandler),          # get() - get user data; post() - create a user
     (r"/ride/.*", RideHandler),          # post() - create or edit a ride
-    (r"/match/.*", MatchHandler),        # get() - list possible matches; post() - select a ride to match
+    (r"/match/.*", MatchHandler),        # get() - list of matches / match for a ride; post() - request/accept/decline a match
     (r"/terminal/.*", TerminalHandler),  # get() - get a list of terminals by airline
 ])
 
@@ -100,7 +108,7 @@ if __name__ == "__main__":
     http_server.listen(80)
     tornado.ioloop.IOLoop.instance().start()
     
-## COnvert string into a dictionary
+## Convert string into a dictionary
 
 # --- urls ---
 # user/:phone

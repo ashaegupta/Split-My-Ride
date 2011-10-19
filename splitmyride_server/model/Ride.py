@@ -26,12 +26,15 @@ class Ride(MongoMixIn.MongoMixIn):
     A_TIMESTAMP_CREATED     = 'ts_c'
     A_TIMESTAMP_DEPARTURE   = 'ts_d'
     A_TIMESTAMP_EXPIRES     = 'ts_e'
-    A_MATCH                 = 'match'
+    A_MATCH_RIDE_ID         = 'match_id'
+    A_PENDING_RIDE_ID      = 'pend_match_id'
     A_STATUS                = 'status'
+    A_MATCH_BLACKLIST       = 'blacklist'
     
-    STATUS_PENDING          = 0
-    STATUS_MATCHED          = 1
-    STATUS_EXPIRED          = 2
+    STATUS_PREPENDING       = 0 # Ride has no pending matches (no requests to match with this ride have been made)
+    STATUS_PENDING          = 1 # Ride has one pending match (one request to match with this ride has been made)
+    STATUS_MATCHED          = 2 # Ride has been matched (both parties accepted)
+    STATUS_EXPIRED          = 3 # Ride is past the expiry window from when it was created
     
     DEFAULT_EXPIRY_WINDOW_IN_SECONDS    = 60*60    # one hour
     MAX_WAIT_TIME_IN_SECONDS            = 15*60    # 15 mins
@@ -64,8 +67,7 @@ class Ride(MongoMixIn.MongoMixIn):
             doc[klass.A_LOC] = [float(lon), float(lat)]
             del doc[klass.A_DESTINATION_LON]
             del doc[klass.A_DESTINATION_LAT]
-
-        
+            
         # Store the time that this object was created, if it does not already exist
         if not doc.get(klass.A_TIMESTAMP_CREATED):
             doc[klass.A_TIMESTAMP_CREATED] = int(time.time())
@@ -76,7 +78,7 @@ class Ride(MongoMixIn.MongoMixIn):
         
         # Initiate status to pending if it does not exist
         if not doc.get(klass.A_STATUS):
-            doc[klass.A_STATUS] = klass.STATUS_PENDING
+            doc[klass.A_STATUS] = klass.STATUS_PREPENDING
             
         try:
             klass.mdbc().update(spec=spec, document={"$set": doc}, upsert=True, safe=True)
@@ -93,25 +95,18 @@ class Ride(MongoMixIn.MongoMixIn):
         return ride_to_match
     
     @classmethod
-    def get_matches(klass, ride_id):
+    def get_matches(klass, ride_to_match):
         rides = []
-        
-        print ride_id
-        
-        # Get info for the ride to match
-        ride_to_match = klass.get_ride(ride_id)
-        print "ride_to_match"
-        print ride_to_match
         
         # Run a query to find matches
         if ride_to_match:
             query = {
                 # not the current ride
                 klass.A_RIDE_ID:{
-                    "$ne":ride_id
+                    "$ne":ride_to_match.get(klass.A_RIDE_ID)
                 },
                 # status pending
-                klass.A_STATUS:klass.STATUS_PENDING,
+                klass.A_STATUS:klass.STATUS_PREPENDING,
                 # must match origin exactly
                 klass.A_ORIGIN_1:ride_to_match.get(klass.A_ORIGIN_1),
                 klass.A_ORIGIN_2:ride_to_match.get(klass.A_ORIGIN_2),
@@ -127,11 +122,12 @@ class Ride(MongoMixIn.MongoMixIn):
             }
             cursor = klass.mdbc().find(query)
             rides = klass.list_from_cursor(cursor)
+            print "rides from databse"
+            print rides
         
             if rides:
                 rides = klass.filter_rides_by_max_distance(rides, ride_to_match.get(klass.A_LOC))
-        
-        return rides
+        return rides    
     
     @classmethod
     def filter_rides_by_max_distance(klass, rides, distance_from):
@@ -144,8 +140,4 @@ class Ride(MongoMixIn.MongoMixIn):
             print distance
             if distance <= klass.MAX_DISTANCE_IN_KMS:
                 filtered_rides.append(ride)
-        return filtered_rides
-    
-    @classmethod
-    def clear_expired_rides(klass):
-        today = datetime.datetime.now()
+        return filtered_rides        

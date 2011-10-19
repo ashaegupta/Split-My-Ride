@@ -51,7 +51,7 @@ class User(MongoMixIn.MongoMixIn):
         return klass.mdbc().find_one(spec)
     
     @classmethod
-    def get_users_by_user_ids(klass, user_ids):
+    def get_users_by_user_ids(klass, user_ids): 
         users_info = {}
         
         query = {klass.A_USER_ID:{"$in":user_ids}}

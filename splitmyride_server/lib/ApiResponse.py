@@ -26,3 +26,18 @@ RIDE_NOT_FOUND = {
     'error':1,
     'message': 'Could not find ride.'
 }
+
+RIDE_NO_ACTION = {
+    'error':1,
+    'message': 'Could not execute this request. Please try again.'
+}
+
+RIDE_COULD_NOT_REQUEST_MATCH = {
+    'error':1,
+    'message':'Could not request a match.'
+}
+
+RIDE_COULD_NOT_ACCEPT_MATCH = {
+    'error':1,
+    'message':'Could not request a match.'
+}
