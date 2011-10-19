@@ -39,5 +39,25 @@ RIDE_COULD_NOT_REQUEST_MATCH = {
 
 RIDE_COULD_NOT_ACCEPT_MATCH = {
     'error':1,
-    'message':'Could not request a match.'
+    'message':'Could not accept a match.'
+}
+
+RIDE_COULD_NOT_DECLINE_MATCH = {
+    'error':1,
+    'message':'Could not accept a match.'
+}
+
+RIDE_MATCH_ACCEPTED = {
+    'success':1,
+    'message':'Match accepted! Get on your way!'
+}
+
+RIDE_MATCH_DECLINED = {
+    'success':1,
+    'message':'Match declined.'
+}
+
+RIDE_MATCH_REQUESTED = {
+    'success':1,
+    'message':'Match requested!'
 }

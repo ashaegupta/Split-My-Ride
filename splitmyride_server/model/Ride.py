@@ -27,9 +27,10 @@ class Ride(MongoMixIn.MongoMixIn):
     A_TIMESTAMP_DEPARTURE   = 'ts_d'
     A_TIMESTAMP_EXPIRES     = 'ts_e'
     A_MATCH_RIDE_ID         = 'match_id'
-    A_PENDING_RIDE_ID      = 'pend_match_id'
+    A_PENDING_RIDE_ID       = 'pend_match_id'
     A_STATUS                = 'status'
-    A_MATCH_BLACKLIST       = 'blacklist'
+    A_MATCH_BLACKLIST_ITEM  = 'blst_item'
+    A_MATCH_BLACKLIST_ALL   = 'blst_all'
     
     STATUS_PREPENDING       = 0 # Ride has no pending matches (no requests to match with this ride have been made)
     STATUS_PENDING          = 1 # Ride has one pending match (one request to match with this ride has been made)
@@ -80,6 +81,8 @@ class Ride(MongoMixIn.MongoMixIn):
         if not doc.get(klass.A_STATUS):
             doc[klass.A_STATUS] = klass.STATUS_PREPENDING
             
+        # NEED TO ADD A BLACKLIST ITEM TO THE LIST, IF AN ITEM EXISTS
+        
         try:
             klass.mdbc().update(spec=spec, document={"$set": doc}, upsert=True, safe=True)
         except Exception, e:
@@ -122,9 +125,6 @@ class Ride(MongoMixIn.MongoMixIn):
             }
             cursor = klass.mdbc().find(query)
             rides = klass.list_from_cursor(cursor)
-            print "rides from databse"
-            print rides
-        
             if rides:
                 rides = klass.filter_rides_by_max_distance(rides, ride_to_match.get(klass.A_LOC))
         return rides    
@@ -140,4 +140,8 @@ class Ride(MongoMixIn.MongoMixIn):
             print distance
             if distance <= klass.MAX_DISTANCE_IN_KMS:
                 filtered_rides.append(ride)
-        return filtered_rides        
+        return filtered_rides
+    
+    @classmethod
+    def remove_blacklist_rides():
+        return

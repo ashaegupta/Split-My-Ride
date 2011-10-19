@@ -77,7 +77,7 @@ class MatchHandler(tornado.web.RequestHandler):
         action = self.get_argument('action')
         curr_user_ride_id = self.get_argument('curr_user_ride_id')
         match_ride_id = self.get_argument('match_ride_id')
-        return RideHelper.do_SMS_action(action, curr_user_ride_id, match_ride_id)
+        return RideHelper.do_match_action(action, curr_user_ride_id, match_ride_id)
         
     def get_matches(self, ride_id):
         return RideHelper.get_matches(ride_id)
