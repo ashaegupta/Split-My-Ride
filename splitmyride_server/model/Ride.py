@@ -134,10 +134,7 @@ class Ride(MongoMixIn.MongoMixIn):
         filtered_rides = []
         for ride in rides:
             loc = ride.get(klass.A_LOC)
-            print "LOC"
-            print loc
             distance = utils.distance_between_two_points(distance_from, loc)
-            print distance
             if distance <= klass.MAX_DISTANCE_IN_KMS:
                 filtered_rides.append(ride)
         return filtered_rides

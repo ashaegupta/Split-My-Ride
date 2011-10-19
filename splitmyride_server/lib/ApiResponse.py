@@ -61,3 +61,18 @@ RIDE_MATCH_REQUESTED = {
     'success':1,
     'message':'Match requested!'
 }
+
+RIDE_STATUS_INCORRECT = {
+    'error':1,
+    'message':'Ride status is incorrect for requested action.'
+}
+
+RIDE_USER_ID_NOT_FOUND = {
+    'error':1,
+    'message':'Could not find this a user_id affiliated with this ride'
+}
+
+RIDE_USER_NOT_FOUND = {
+    'error':1,
+    'message':'Could not find this a user object affiliated with this ride'
+}
