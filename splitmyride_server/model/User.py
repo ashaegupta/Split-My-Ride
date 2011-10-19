@@ -59,3 +59,8 @@ class User(MongoMixIn.MongoMixIn):
         users_info = klass.dict_from_cursor(cursor, key=klass.A_USER_ID)
         
         return users_info
+
+    @classmethod
+    def get_user_by_user_id(klass, user_id): 
+        spec = {klass.A_USER_ID:user_id}
+        return klass.mdbc().find_one(spec)

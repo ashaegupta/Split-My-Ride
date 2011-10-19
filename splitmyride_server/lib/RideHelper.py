@@ -88,7 +88,7 @@ class RideHelper(object):
             for ride in rides:
                 del ride[Ride.A_OBJECT_ID]
                 user_id = ride.get(Ride.A_USER_ID)
-                ride["user"] = users.get(user_id)
+                ride['user'] = users.get(user_id)
             return rides
 
     @classmethod
@@ -112,8 +112,6 @@ class RideHelper(object):
     
     @classmethod
     def get_matches_for_status_matched(klass, ride_doc):
-        doc = ""
-        
         # first ensure status is matched
         if ride_doc.get(Ride.A_STATUS)!=2: return ApiResponse.RIDE_STATUS_INCORRECT
             
@@ -125,7 +123,6 @@ class RideHelper(object):
 
     @classmethod
     def get_ride_and_user_docs_from_ride_id(klass, ride_id):
-        
         if not ride_id: return ApiResponse.RIDE_RIDE_ID_NOT_FOUND
         
         ride_doc = klass.get_ride(ride_id)
@@ -134,10 +131,10 @@ class RideHelper(object):
         user_id = ride_doc.get(Ride.A_USER_ID)
         if not user_id: return ApiResponse.RIDE_USER_ID_NOT_FOUND
         
-        user_doc = UserHelper.get_users_by_id(user_id)
+        user_doc = UserHelper.get_user_by_id(user_id)        
         if not user_doc: return ApiResponse.RIDE_USER_NOT_FOUND
         
-        ride_doc["user"]=user_doc
+        ride_doc['user']=user_doc
         return ride_doc
     
     
@@ -157,33 +154,31 @@ class RideHelper(object):
     def request_match(klass, curr_user_ride_id, match_ride_id):
         # update the status of both ride ids to be STATUS_PENDING
         curr_update_doc = klass.get_ride(curr_user_ride_id)
-        print "curr_update_doc"
-        print curr_update_doc
         curr_update_doc[Ride.A_STATUS] = 1
         curr_update_doc[Ride.A_PENDING_RIDE_ID] = match_ride_id
         
         match_update_doc = klass.get_ride(match_ride_id)
-        print "match_update_doc"
-        print match_update_doc
         match_update_doc[Ride.A_STATUS] = 1
         match_update_doc[Ride.A_PENDING_RIDE_ID] = curr_user_ride_id
-        
+                
         curr_update_success = Ride.create_or_update_ride(curr_update_doc)
         match_update_success = Ride.create_or_update_ride(match_update_doc)
-        if not curr_update_success or match_update_success: return ApiResponse.RIDE_COULD_NOT_REQUEST_MATCH
         
-        # get name of the curr_user
+        if not (curr_update_success or match_update_success):
+             return ApiResponse.RIDE_COULD_NOT_REQUEST_MATCH
+        
         curr_ride_doc = klass.get_ride_and_user_docs_from_ride_id(curr_user_ride_id)        
         if not curr_ride_doc: return ApiResponse.RIDE_COULD_NOT_REQUEST_MATCH
-        from_first_name = curr_ride_doc.get("user").get(USER.A_FIRST_NAME)
-        from_last_name = curr_ride_doc.get("user").get(USER.A_LAST_NAME)
+        # get name of the curr_user
+        from_first_name = curr_ride_doc.get('user').get(User.A_FIRST_NAME)
+        from_last_name = curr_ride_doc.get('user').get(User.A_LAST_NAME)
         
         # get the phone number of the match_id
         match_doc = klass.get_ride_and_user_docs_from_ride_id(match_ride_id) 
         if not match_doc: return ApiResponse.RIDE_COULD_NOT_REQUEST_MATCH
-        to_first_name = match_doc.get("user").get(USER.A_FIRST_NAME)
-        to_last_name = match_doc.get("user").get(USER.A_LAST_NAME)
-        to_phone_number = match_doc.get("user").get(USER.A_PHONE)
+        to_first_name = match_doc.get('user').get(User.A_FIRST_NAME)
+        to_last_name = match_doc.get('user').get(User.A_LAST_NAME)
+        to_phone_number = match_doc.get('user').get(User.A_PHONE)
 
         # send sms and return twilio response
         note = "Hi %s, great news! %s wants to split a ride with you! Go to the app to check out details!" % (to_first_name, from_first_name +" "+ from_last_name)
@@ -202,21 +197,22 @@ class RideHelper(object):
         # update the status of both ride ids to be MATCHED
         curr_update_doc = klass.get_ride(curr_user_ride_id)
         curr_update_doc[Ride.A_STATUS] = 2
+        curr_update_doc[Ride.A_PENDING_RIDE_ID] = ""
         curr_update_doc[Ride.A_MATCH_RIDE_ID] = match_ride_id
         
         match_update_doc = klass.get_ride(match_ride_id)
         match_update_doc[Ride.A_STATUS] = 2
+        match_update_doc[Ride.A_PENDING_RIDE_ID] = ""
         match_update_doc[Ride.A_MATCH_RIDE_ID] = curr_user_ride_id
-        
         
         curr_update_success = Ride.create_or_update_ride(curr_update_doc)
         match_update_success = Ride.create_or_update_ride(match_update_doc)
-        if not curr_update_success or match_update_success: return ApiResponse.RIDE_COULD_NOT_ACCEPT_MATCH
+        if not (curr_update_success or match_update_success): return ApiResponse.RIDE_COULD_NOT_ACCEPT_MATCH
         
         # get first names of both users and to_phone_number
-        from_first_name = curr_doc.get("user").get(User.A_FIRST_NAME)
-        to_first_name = match_doc.get("user").get(User.A_FIRST_NAME)
-        to_phone_number = match_doc.get("user").get(User.A_PHONE)
+        from_first_name = curr_doc.get('user').get(User.A_FIRST_NAME)
+        to_first_name = match_doc.get('user').get(User.A_FIRST_NAME)
+        to_phone_number = match_doc.get('user').get(User.A_PHONE)
         
         # send the sms to accept the ride request
         note = "Hi %s! %s has accepted your request to split a ride! Wahoo!" % (to_first_name, from_first_name)
@@ -246,5 +242,29 @@ class RideHelper(object):
         
         curr_update_success = Ride.create_or_update_ride(curr_update_doc)
         match_update_success = Ride.create_or_update_ride(match_update_doc)
-        if not curr_update_success or match_update_success: return ApiResponse.RIDE_COULD_NOT_DECLINE_MATCH
+        if not (curr_update_success or match_update_success): return ApiResponse.RIDE_COULD_NOT_DECLINE_MATCH
         return ApiResponse.RIDE_MATCH_DECLINED
+    
+    '''
+    # helper method to update ride status
+    @classmethod
+    def update_match_status(klass, ride_id_to_update, ride_id_to_include, action, curr_status, new_status)
+        ride_doc = klass.get_ride_and_user_docs_from_ride_id(ride_id_to_update)
+        
+        if curr_doc.get(Ride.A_STATUS)!=curr_status: return ApiResponse.RIDE_COULD_NOT_DECLINE_MATCH
+        
+        # update the status of both ride ids to be UNMATCHED and add ride_ids to blacklists
+        update_doc = klass.get_ride(user_id)
+        curr_update_doc[Ride.A_STATUS] = 0
+        curr_update_doc[Ride.A_PENDING_RIDE_ID] = ""
+        curr_update_doc[Ride.A_MATCH_BLACKLIST_ITEM] = match_ride_id
+        
+        match_update_doc = klass.get_ride(match_ride_id)
+        match_update_doc[Ride.A_STATUS] = 0
+        match_update_doc[Ride.A_PENDING_RIDE_ID] = ""
+        match_update_doc[Ride.A_MATCH_BLACKLIST_ITEM] = curr_user_ride_id
+        
+        curr_update_success = Ride.create_or_update_ride(curr_update_doc)
+        match_update_success = Ride.create_or_update_ride(match_update_doc)
+    '''
+        

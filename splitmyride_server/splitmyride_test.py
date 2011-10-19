@@ -10,7 +10,7 @@ import datetime
 from model.Ride import Ride
 from model.User import User
 from model.Terminal import Terminal
-from test.test_data import test_data
+import test_data
 
 def purge_test_database():
     User.mdbc().remove()
@@ -21,19 +21,41 @@ def purge_test_database():
     Terminal.setup_mongo_indexes()
     
 def test_all():
+    # clear database
     purge_test_database()
+    
+    # add users
     add_users()
     get_users()
+    
+    # add new rides & get potential matches for a new ride
     prepending_ride_id = add_rides()
     rides = get_matches(prepending_ride_id)
-    print rides
     
+    # have user_1 request a match with user_4
     ride_requested = get_ride_by_phone(rides, test_data.user_4.get('phone'))
     ride_requested_id = ride_requested.get(Ride.A_RIDE_ID)
-    print ride_request_id
-    #request_match(prepending_ride_id, ride_requested_id)
-    #get_matches(prepending_ride_id)
-    #get_matches(ride_requested_id)
+    request_match(prepending_ride_id, ride_requested_id)
+    get_matches(prepending_ride_id)
+    get_matches(ride_requested_id)
+    
+    # have user_4 decline the match
+    decline_match(ride_requested_id, prepending_ride_id)
+    get_matches(prepending_ride_id)
+    get_matches(ride_requested_id)
+    
+    # have user_1 request a new match with user_3
+    ride_requested = get_ride_by_phone(rides, test_data.user_3.get('phone'))
+    ride_requested_id = ride_requested.get(Ride.A_RIDE_ID)
+    request_match(prepending_ride_id, ride_requested_id)
+    get_matches(prepending_ride_id)
+    get_matches(ride_requested_id)
+    
+    # have user_3 accpet the match
+    accept_match(ride_requested_id, prepending_ride_id)
+    get_matches(prepending_ride_id)
+    get_matches(ride_requested_id)
+    
     
 def get_ride_by_phone(rides, phone):
     for ride in rides:
@@ -180,10 +202,8 @@ def add_rides():
 
 def get_matches(ride_to_match_id):
     # Get matches
-    print "ride to match_id"
-    print ride_to_match_id
     rides = RideHelper.get_matches(ride_to_match_id)
-    print "rides"
+    print "rides_matched for user with id = %s" % ride_to_match_id
     print rides
     return rides
 
@@ -193,9 +213,14 @@ def request_match(curr_user_ride_id, match_ride_id):
     print resp
     return resp
 
-def get_matches(curr_user_ride_id):
-    resp = RideHelper.get_matches(curr_user_ride_id)
-    doc = RideHelper.get_ride_and_user_docs_from_ride_id(curr_user_ride_id)
-    print "get matches for %s" % doc.get("user").get(User.A_FIRST_NAME)
+def decline_match(curr_user_ride_id, match_ride_id):
+    resp = RideHelper.decline_match(curr_user_ride_id, match_ride_id)
+    print "match declined"
+    print resp
+    return resp
+    
+def accept_match(curr_user_ride_id, match_ride_id):
+    resp = RideHelper.accept_match(curr_user_ride_id, match_ride_id)
+    print "match accepted"
     print resp
     return resp

@@ -27,7 +27,6 @@ class UserHelper(object):
             del user[User.A_OBJECT_ID]
             return user
         
-    
     @classmethod
     def get_users_by_id(klass, user_ids):
         users = User.get_users_by_user_ids(user_ids)
@@ -37,3 +36,12 @@ class UserHelper(object):
             for uid, user in users.iteritems():
                 del users[uid][User.A_OBJECT_ID]
             return users
+    
+    @classmethod
+    def get_user_by_id(klass, user_id):
+        user = User.get_user_by_user_id(user_id)
+        if not user:
+            return ApiResponse.USER_NOT_FOUND
+        else:
+            del user[User.A_OBJECT_ID]
+            return user
