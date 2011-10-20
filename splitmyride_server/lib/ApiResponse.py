@@ -76,3 +76,8 @@ RIDE_USER_NOT_FOUND = {
     'error':1,
     'message':'Could not find this a user object affiliated with this ride'
 }
+
+API_MISSING_PARAMS = {
+    'error':1,
+    'message':'The following param(s) were missing: '
+}

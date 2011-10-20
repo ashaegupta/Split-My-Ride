@@ -1,19 +1,30 @@
 import re
-import urlparse
-import urllib
-from urlparse import parse_qs, parse_qsl
 
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
-from model.User import User
+from lib.RideHelper import RideHelper
+from lib.TerminalHelper import TerminalHelper
 from lib.UserHelper import UserHelper
 
 from lib import ApiResponse
 
+class BaseHandler(tornado.web.RequestHandler):
+    def require_params(self, required_params):
+        missing_params = []
+        for param in required_params:
+            if param not in self.arguments:
+                missing_params.append(param)
+        if missing_params:
+            error = ApiResponse.API_MISSING_PARAMS
+            error['message'] += ' %s' % ', '.join(missing_params)
+            self.finish(error)
+            return True
+        return False
+
 ## Sets up all the HTTP Get / Post requests using Tornado, listening on port 80
-class UserHandler(tornado.web.RequestHandler):
+class UserHandler(BaseHandler):
     
     # Get user info
     def get(self):
@@ -21,79 +32,66 @@ class UserHandler(tornado.web.RequestHandler):
         m = re.match('^/user/([\d].*)$', self.request.uri)
         if m:
             phone = m.group(1)
-            user = self.get_user_by_phone(phone)
+            user = UserHelper.get_user_by_phone(phone)
         self.write(user)
-    
-    # Get user info from database        
-    def get_user_by_phone(self, phone):
-        return UserHelper.get_user_by_phone(phone)
        
     # Add a new user with first_name, last_name, phone and image_url
     def post(self):
-        resp = self.add_user()
-        self.write(resp)
-        
-    # Add user to database
-    def add_user(self):
+        required_params = ['first_name', 'last_name', 'image_url', 'phone']
+        # returning becuase calling write() a few lines below will throw an error
+        # since require_params already called write() or finish()
+        if self.require_params(required_params): return
         first_name = self.get_argument('first_name') 
         last_name = self.get_argument('last_name')
         image_url = self.get_argument('image_url') 
         phone = self.get_argument('phone')
-        return UserHelper.add_user(first_name, last_name, image_url, phone)
-        
-
-class RideHandler(tornado.web.RequestHandler):
-
-    # Add a new ride
-    def post(self):
-        resp = self.add_ride()
+        resp = UserHelper.add_user(first_name, last_name, image_url, phone)
         self.write(resp)
+        
+class RideHandler(BaseHandler):
 
-    # Add user to database
-    def add_ride(self):
+    def post(self):
+        required_params = ['user_id', 'origin', 'dest_lon', 'dest_lat', 'departure_time']
+        if self.require_params(required_params): return
         user_id = self.get_argument('user_id') 
         origin = self.get_argument('origin')
         dest_lon = self.get_argument('dest_lon') 
         dest_lat = self.get_argument('dest_lat')
         departure_time = self.get_argument('departure_time')
-        return RideHelper.create_or_update_ride(user_id, origin, dest_lon, dest_lat, departure_time)
+        resp = RideHelper.create_or_update_ride(user_id, origin, 
+                                                dest_lon, dest_lat, 
+                                                departure_time)
+        self.write(resp)
 
-class MatchHandler(tornado.web.RequestHandler):
+class MatchHandler(BaseHandler):
     
     def get(self):
         matches = {}
         m = re.match('^/match/([0-9a-f]){32}$', self.request.uri)
         if m:
             ride_id = m.group(1)
-            matches = self.get_matches(ride_id)
+            matches = RideHelper.get_matches(ride_id)
         self.write(matches)
     
-    def post(self):
-        resp = self.do_match_action()
-        pass self.write(resp)
-        
     # Request, accept or decline a match
-    def do_match_action():
+    def post(self):
+        required_params = ['action', 'curr_user_ride_id', 'match_ride_id']
+        if self.require_params(required_params): return
         action = self.get_argument('action')
         curr_user_ride_id = self.get_argument('curr_user_ride_id')
         match_ride_id = self.get_argument('match_ride_id')
-        return RideHelper.do_match_action(action, curr_user_ride_id, match_ride_id)
-        
-    def get_matches(self, ride_id):
-        return RideHelper.get_matches(ride_id)
+        resp = RideHelper.do_match_action(action, curr_user_ride_id, match_ride_id)
+        self.write(resp)
 
-class TerminalHandler(tornado.web.RequestHandler):
+class TerminalHandler(BaseHandler):
 
     def get(self):
         terminals = {}
         m = re.match('^/terminal/([a-zA-Z]){3}$', self.request.uri)
         if m:
             airport = m.group(1)
-            terminals = self.get_terminals(airport)
+            terminals = TerminalHelper.get_terminals(airport)
         self.write(terminals)
-    
-    def get_terminals(self, airport):
-        return TerminalHelper.get_terminals(airport)
 
 application = tornado.web.Application([
     #(r"/", MainHandler),                 # get() - homepage - link to app

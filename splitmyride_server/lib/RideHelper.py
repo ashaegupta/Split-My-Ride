@@ -10,8 +10,6 @@ class RideHelper(object):
     @classmethod
     def create_or_update_ride(klass, user_id, origin, dest_lon, dest_lat, departure_time):
         ## Convert the origin and destination dictionaries into a string
-        origin_dict = {}
-        destination_dict = {}
         origin_dict = simplejson.loads(origin)
         origin_1 = origin_dict.get('origin_1')
         origin_2 = origin_dict.get('origin_2')
@@ -50,11 +48,11 @@ class RideHelper(object):
         ride_doc = klass.get_ride(ride_id)
         status = ride_doc.get(Ride.A_STATUS)
         
-        if status==0:
+        if status == Ride.STATUS_PREPENDING:
             return klass.get_matches_for_status_prepending(ride_doc)
-        elif status==1:
+        elif status == Ride.STATUS_PENDING:
             return klass.get_matches_for_status_pending(ride_doc)
-        elif status==2:
+        elif status == Ride.STATUS_MATCHED:
             return klass.get_matches_for_status_matched(ride_doc)
         else:
             return ApiResponse.RIDE_NO_MATCHES_FOUND
@@ -95,9 +93,6 @@ class RideHelper(object):
     def get_matches_for_status_pending(klass, ride_doc):
         rides = []
         
-        # first ensure status is pending
-        if ride_doc.get(Ride.A_STATUS)!=1: return klass.get_matches_for_status_prepending(ride_doc)
-        
         # get the match ride and user info
         pending_ride_id = ride_doc.get(Ride.A_PENDING_RIDE_ID)
         if not pending_ride_id: return klass.get_matches_for_status_prepending(ride_doc)
@@ -112,9 +107,6 @@ class RideHelper(object):
     
     @classmethod
     def get_matches_for_status_matched(klass, ride_doc):
-        # first ensure status is matched
-        if ride_doc.get(Ride.A_STATUS)!=2: return ApiResponse.RIDE_STATUS_INCORRECT
-            
         # get the match ride and user info
         match_ride_id = ride_doc.get(Ride.A_MATCH_RIDE_ID)    
         if not match_ride_id: return ApiResponse.RIDE_NOT_FOUND
@@ -123,8 +115,6 @@ class RideHelper(object):
 
     @classmethod
     def get_ride_and_user_docs_from_ride_id(klass, ride_id):
-        if not ride_id: return ApiResponse.RIDE_RIDE_ID_NOT_FOUND
-        
         ride_doc = klass.get_ride(ride_id)
         if not ride_doc: return ApiResponse.RIDE_NOT_FOUND
         
@@ -177,7 +167,6 @@ class RideHelper(object):
         match_doc = klass.get_ride_and_user_docs_from_ride_id(match_ride_id) 
         if not match_doc: return ApiResponse.RIDE_COULD_NOT_REQUEST_MATCH
         to_first_name = match_doc.get('user').get(User.A_FIRST_NAME)
-        to_last_name = match_doc.get('user').get(User.A_LAST_NAME)
         to_phone_number = match_doc.get('user').get(User.A_PHONE)
 
         # send sms and return twilio response

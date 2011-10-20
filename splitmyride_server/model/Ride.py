@@ -28,9 +28,10 @@ class Ride(MongoMixIn.MongoMixIn):
     A_TIMESTAMP_EXPIRES     = 'ts_e'
     A_MATCH_RIDE_ID         = 'match_id'
     A_PENDING_RIDE_ID       = 'pend_match_id'
+    A_REJECTED_RIDE_IDS     = 'rejected_ride_ids'       # list of ids
     A_STATUS                = 'status'
-    A_MATCH_BLACKLIST_ITEM  = 'blst_item'
-    A_MATCH_BLACKLIST_ALL   = 'blst_all'
+    A_MATCH_REJECTED_ITEM   = 'rejected_item'
+    A_MATCH_REJECTED_ALL    = 'rejected_all'
     
     STATUS_PREPENDING       = 0 # Ride has no pending matches (no requests to match with this ride have been made)
     STATUS_PENDING          = 1 # Ride has one pending match (one request to match with this ride has been made)
@@ -81,10 +82,22 @@ class Ride(MongoMixIn.MongoMixIn):
         if not doc.get(klass.A_STATUS):
             doc[klass.A_STATUS] = klass.STATUS_PREPENDING
             
-        # NEED TO ADD A BLACKLIST ITEM TO THE LIST, IF AN ITEM EXISTS
-        
+        document = {'$set': doc}
+
+        # add one or more ride ids to a set of rejected rides
+        addToSet = {}
+        rejected_ride_ids = doc.get(klass.A_REJECTED_RIDE_IDS)
+        if rejected_ride_ids:
+            if type(rejected_ride_ids) == list:
+                addToSet[klass.A_REJECTED_RIDE_IDS] = {"$each":rejected_ride_ids}
+            else:
+                addToSet[klass.A_REJECTED_RIDE_IDS] = rejected_ride_ids
+
+        if addToSet:
+            document['$addToSet'] = addToSet
+
         try:
-            klass.mdbc().update(spec=spec, document={"$set": doc}, upsert=True, safe=True)
+            klass.mdbc().update(spec=spec, document=document, upsert=True, safe=True)
         except Exception, e:
             logging.error("COULD NOT UPSERT document in model.Ride Exception: %s" % e.message)
             return False
