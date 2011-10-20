@@ -20,8 +20,8 @@ class BaseHandler(tornado.web.RequestHandler):
             error = ApiResponse.API_MISSING_PARAMS
             error['message'] += ' %s' % ', '.join(missing_params)
             self.finish(error)
-            return True
-        return False
+            return False
+        return True
 
 ## Sets up all the HTTP Get / Post requests using Tornado, listening on port 80
 class UserHandler(BaseHandler):
@@ -40,7 +40,7 @@ class UserHandler(BaseHandler):
         required_params = ['first_name', 'last_name', 'image_url', 'phone']
         # returning becuase calling write() a few lines below will throw an error
         # since require_params already called write() or finish()
-        if self.require_params(required_params): return
+        if not self.require_params(required_params): return
         first_name = self.get_argument('first_name') 
         last_name = self.get_argument('last_name')
         image_url = self.get_argument('image_url') 
@@ -52,7 +52,7 @@ class RideHandler(BaseHandler):
 
     def post(self):
         required_params = ['user_id', 'origin', 'dest_lon', 'dest_lat', 'departure_time']
-        if self.require_params(required_params): return
+        if not self.require_params(required_params): return
         user_id = self.get_argument('user_id') 
         origin = self.get_argument('origin')
         dest_lon = self.get_argument('dest_lon') 
@@ -75,12 +75,12 @@ class MatchHandler(BaseHandler):
     
     # Request, accept or decline a match
     def post(self):
-        required_params = ['action', 'curr_user_ride_id', 'match_ride_id']
-        if self.require_params(required_params): return
+        required_params = ['action', 'ride_id', 'match_ride_id']
+        if not self.require_params(required_params): return
         action = self.get_argument('action')
-        curr_user_ride_id = self.get_argument('curr_user_ride_id')
+        ride_id = self.get_argument('ride_id')
         match_ride_id = self.get_argument('match_ride_id')
-        resp = RideHelper.do_match_action(action, curr_user_ride_id, match_ride_id)
+        resp = RideHelper.do_action(action, ride_id, match_ride_id)
         self.write(resp)
 
 class TerminalHandler(BaseHandler):

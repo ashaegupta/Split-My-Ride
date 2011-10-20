@@ -28,6 +28,7 @@ class Ride(MongoMixIn.MongoMixIn):
     A_TIMESTAMP_EXPIRES     = 'ts_e'
     A_MATCH_RIDE_ID         = 'match_id'
     A_PENDING_RIDE_ID       = 'pend_match_id'
+    A_REJECTED_RIDE_ID      = 'rejected_ride_id'
     A_REJECTED_RIDE_IDS     = 'rejected_ride_ids'       # list of ids
     A_STATUS                = 'status'
     A_MATCH_REJECTED_ITEM   = 'rejected_item'
@@ -37,6 +38,10 @@ class Ride(MongoMixIn.MongoMixIn):
     STATUS_PENDING          = 1 # Ride has one pending match (one request to match with this ride has been made)
     STATUS_MATCHED          = 2 # Ride has been matched (both parties accepted)
     STATUS_EXPIRED          = 3 # Ride is past the expiry window from when it was created
+
+    ACTION_REQUEST          = 'request'
+    ACTION_ACCEPT           = 'accept'
+    ACTION_DECLINE          = 'decline'
     
     DEFAULT_EXPIRY_WINDOW_IN_SECONDS    = 60*60    # one hour
     MAX_WAIT_TIME_IN_SECONDS            = 15*60    # 15 mins
@@ -55,6 +60,8 @@ class Ride(MongoMixIn.MongoMixIn):
     @classmethod
     def create_or_update_ride(klass, doc=None):
         if not doc: doc = {}
+        
+        document = {}
         
         # Create ride_id if doesn't already exist
         ride_id = doc.get(klass.A_RIDE_ID)       
@@ -82,17 +89,18 @@ class Ride(MongoMixIn.MongoMixIn):
         if not doc.get(klass.A_STATUS):
             doc[klass.A_STATUS] = klass.STATUS_PREPENDING
             
-        document = {'$set': doc}
-
         # add one or more ride ids to a set of rejected rides
         addToSet = {}
-        rejected_ride_ids = doc.get(klass.A_REJECTED_RIDE_IDS)
+        rejected_ride_ids = doc.get(klass.A_REJECTED_RIDE_ID)
         if rejected_ride_ids:
+            del doc[klass.A_REJECTED_RIDE_ID]
             if type(rejected_ride_ids) == list:
                 addToSet[klass.A_REJECTED_RIDE_IDS] = {"$each":rejected_ride_ids}
             else:
                 addToSet[klass.A_REJECTED_RIDE_IDS] = rejected_ride_ids
 
+        if doc:
+            document['$set'] = doc
         if addToSet:
             document['$addToSet'] = addToSet
 
@@ -132,12 +140,12 @@ class Ride(MongoMixIn.MongoMixIn):
                 },
                 # add time window
                 klass.A_TIMESTAMP_DEPARTURE: {
-                    "$gt":ride_to_match.get(klass.A_TIMESTAMP_DEPARTURE) - klass.MAX_WAIT_TIME_IN_SECONDS,
+                    "$gt": ride_to_match.get(klass.A_TIMESTAMP_DEPARTURE) - klass.MAX_WAIT_TIME_IN_SECONDS,
                     "$lte":ride_to_match.get(klass.A_TIMESTAMP_DEPARTURE) + klass.MAX_WAIT_TIME_IN_SECONDS
                 }
             }
             cursor = klass.mdbc().find(query)
-            rides = klass.list_from_cursor(cursor)
+            rides = klass.list_from_cursor(cursor, remove_object_id=True)
             if rides:
                 rides = klass.filter_rides_by_max_distance(rides, ride_to_match.get(klass.A_LOC))
         return rides    
@@ -155,3 +163,64 @@ class Ride(MongoMixIn.MongoMixIn):
     @classmethod
     def remove_blacklist_rides():
         return
+
+    @classmethod
+    def create_match(klass, ride_id, match_ride_id):
+        ride_doc = {
+            klass.A_RIDE_ID: ride_id,
+            klass.A_STATUS: klass.STATUS_MATCHED,
+            klass.A_PENDING_RIDE_ID: None,
+            klass.A_MATCH_RIDE_ID: match_ride_id
+        }
+        
+        match_doc = {
+            klass.A_RIDE_ID: match_ride_id,
+            klass.A_STATUS: 2,
+            klass.A_PENDING_RIDE_ID: None,
+            klass.A_MATCH_RIDE_ID: ride_id
+        }
+        return klass.create_or_update_ride_and_match(ride_doc, match_doc)
+
+    @classmethod
+    def request_match(klass, ride_id, match_ride_id):
+        ride_doc = {
+            klass.A_RIDE_ID: ride_id,
+            klass.A_STATUS: klass.STATUS_PENDING,
+            klass.A_PENDING_RIDE_ID: match_ride_id,
+        }
+        
+        match_doc = {
+            klass.A_RIDE_ID: match_ride_id,
+            klass.A_STATUS: klass.STATUS_PENDING,
+            klass.A_PENDING_RIDE_ID: ride_id,
+        }
+        return klass.create_or_update_ride_and_match(ride_doc, match_doc)
+
+    @classmethod
+    def decline_request(klass, ride_id, match_ride_id):
+        ride_doc = {
+            klass.A_RIDE_ID: ride_id,
+            klass.A_STATUS: klass.STATUS_PREPENDING,
+            klass.A_PENDING_RIDE_ID: None,
+            klass.A_REJECTED_RIDE_ID: match_ride_id
+        }
+        
+        match_doc = {
+            klass.A_RIDE_ID: match_ride_id,
+            klass.A_STATUS: klass.STATUS_PREPENDING,
+            klass.A_PENDING_RIDE_ID: None,
+            klass.A_REJECTED_RIDE_ID: ride_id
+        }
+        return klass.create_or_update_ride_and_match(ride_doc, match_doc)
+
+    @classmethod
+    def create_or_update_ride_and_match(klass, ride_doc, match_doc):
+        ride_update_success = klass.create_or_update_ride(ride_doc)
+        match_update_success = klass.create_or_update_ride(match_doc)
+        
+        if not (ride_update_success or match_update_success): 
+            return False
+        return True
+
+
+

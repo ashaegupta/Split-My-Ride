@@ -75,10 +75,13 @@ class MongoMixIn(object):
         return r
     
     @classmethod
-    def list_from_cursor(klass, cursor):
+    def list_from_cursor(klass, cursor, remove_object_id=False):
         r = []
         if cursor:
             for c in cursor:
+                if remove_object_id:
+                    if klass.A_OBJECT_ID in c:
+                        del c[klass.A_OBJECT_ID]
                 r.append(c)
         return r
 

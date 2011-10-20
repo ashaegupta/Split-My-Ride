@@ -12,6 +12,11 @@ RIDE_COULD_NOT_CREATE = {
     'message':'Could not create ride.'
 }
 
+RIDE_CURRENTLY_PENDING = {
+    'error':1,
+    'message':'Sorry, that ride has been taken or is pending another match'
+}
+
 TERMINAL_NOT_FOUND = {
     'error':1,
     'message': 'Could not find terminal information for this airport.'
