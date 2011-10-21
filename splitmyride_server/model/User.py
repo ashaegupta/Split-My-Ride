@@ -48,7 +48,7 @@ class User(MongoMixIn.MongoMixIn):
     @classmethod
     def get_user_by_phone(klass, phone):
         spec = {klass.A_PHONE:phone}
-        return klass.mdbc().find_one(spec)
+        return klass.mdbc().find_one_remove_object_id(spec, remove_object_id=True)
     
     @classmethod
     def get_users_by_user_ids(klass, user_ids): 
@@ -56,11 +56,11 @@ class User(MongoMixIn.MongoMixIn):
         
         query = {klass.A_USER_ID:{"$in":user_ids}}
         cursor = klass.mdbc().find(query)
-        users_info = klass.dict_from_cursor(cursor, key=klass.A_USER_ID)
+        users_info = klass.dict_from_cursor(cursor, key=klass.A_USER_ID, remove_object_id=True)
         
         return users_info
 
     @classmethod
     def get_user_by_user_id(klass, user_id): 
         spec = {klass.A_USER_ID:user_id}
-        return klass.mdbc().find_one(spec)
+        return klass.mdbc().find_one_remove_object_id(spec, remove_object_id=True)

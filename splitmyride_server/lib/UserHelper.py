@@ -24,7 +24,6 @@ class UserHelper(object):
         if not user:
             return ApiResponse.USER_NOT_FOUND
         else:
-            del user[User.A_OBJECT_ID]
             return user
         
     @classmethod
@@ -33,8 +32,6 @@ class UserHelper(object):
         if not users:
             return ApiResponse.USER_NOT_FOUND
         else:
-            for uid, user in users.iteritems():
-                del users[uid][User.A_OBJECT_ID]
             return users
     
     @classmethod
@@ -43,5 +40,4 @@ class UserHelper(object):
         if not user:
             return ApiResponse.USER_NOT_FOUND
         else:
-            del user[User.A_OBJECT_ID]
             return user

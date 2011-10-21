@@ -36,7 +36,6 @@ class RideHelper(object):
         if not ride:
             return ApiResponse.RIDE_NOT_FOUND
         else:
-            del ride[Ride.A_OBJECT_ID]
             return ride
     
     # Return the appropriate match(es) depending on the ride_id status

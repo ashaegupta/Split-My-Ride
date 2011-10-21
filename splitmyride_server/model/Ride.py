@@ -115,7 +115,7 @@ class Ride(MongoMixIn.MongoMixIn):
     @classmethod
     def get_ride(klass, ride_id):
         spec = {klass.A_RIDE_ID:ride_id}
-        ride_to_match = klass.mdbc().find_one(spec)
+        ride_to_match = klass.mdbc().find_one_remove_object_id(spec, remove_object_id=True)
         return ride_to_match
     
     @classmethod
@@ -161,10 +161,6 @@ class Ride(MongoMixIn.MongoMixIn):
         return filtered_rides
     
     @classmethod
-    def remove_blacklist_rides():
-        return
-
-    @classmethod
     def create_match(klass, ride_id, match_ride_id):
         ride_doc = {
             klass.A_RIDE_ID: ride_id,
@@ -175,7 +171,7 @@ class Ride(MongoMixIn.MongoMixIn):
         
         match_doc = {
             klass.A_RIDE_ID: match_ride_id,
-            klass.A_STATUS: 2,
+            klass.A_STATUS: klass.STATUS_MATCHED,
             klass.A_PENDING_RIDE_ID: None,
             klass.A_MATCH_RIDE_ID: ride_id
         }

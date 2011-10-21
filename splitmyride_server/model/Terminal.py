@@ -46,6 +46,6 @@ class Terminal(MongoMixIn.MongoMixIn):
         airlines = {}
         spec = {klass.A_AIRPORT:airport}
         docs = klass.mdbc().find(spec)
-        airlines = klass.list_from_cursor(docs)
+        airlines = klass.list_from_cursor(docs, remove_object_id=True)
         return airlines
       
