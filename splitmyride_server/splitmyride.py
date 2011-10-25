@@ -26,7 +26,7 @@ class BaseHandler(tornado.web.RequestHandler):
 ## Sets up all the HTTP Get / Post requests using Tornado, listening on port 80
 class UserHandler(BaseHandler):
     
-    # Get user info
+    # Get user info by their phone number
     def get(self):
         user = {}
         m = re.match('^/user/([\d].*)$', self.request.uri)
@@ -50,6 +50,13 @@ class UserHandler(BaseHandler):
         
 class RideHandler(BaseHandler):
 
+    # Post a new ride to the database with the following data
+    #       user_id = string
+    #       origin = string wrapped list with two elements, venue_id and place pick-up
+    #       dest_lon = longitude of destination
+    #       dest_lat = latitude of destination
+    #       departure time
+    #
     def post(self):
         required_params = ['user_id', 'origin', 'dest_lon', 'dest_lat', 'departure_time']
         if not self.require_params(required_params): return
@@ -65,6 +72,10 @@ class RideHandler(BaseHandler):
 
 class MatchHandler(BaseHandler):
     
+    # Get the matches for a given ride_id.
+    #   If the ride_id is PREPENDING, returns a list of potential matches
+    #   If the ride_id is PENDING, returns the requested match to be confirmed
+    #   If the ride_id is MATCHED, returns the match
     def get(self):
         matches = {}
         m = re.match('^/match/([0-9a-f]){32}$', self.request.uri)
@@ -86,7 +97,6 @@ class MatchHandler(BaseHandler):
 class TerminalHandler(BaseHandler):
 
     def get(self):
-        terminals = {}
         m = re.match('^/terminal/([a-zA-Z]){3}$', self.request.uri)
         if m:
             airport = m.group(1)
@@ -94,7 +104,7 @@ class TerminalHandler(BaseHandler):
         self.write(terminals)
 
 application = tornado.web.Application([
-    #(r"/", MainHandler),                 # get() - homepage - link to app
+    #(r"/", MainHandler),                # get() - homepage - link to app
     (r"/user/.*", UserHandler),          # get() - get user data; post() - create a user
     (r"/ride/.*", RideHandler),          # post() - create or edit a ride
     (r"/match/.*", MatchHandler),        # get() - list of matches / match for a ride; post() - request/accept/decline a match
@@ -107,9 +117,9 @@ if __name__ == "__main__":
     tornado.ioloop.IOLoop.instance().start()
     
 ## Convert string into a dictionary
-
 # --- urls ---
 # user/:phone
 # - get() a user's data, e.g. http://splitmyri.de/user/6469152002
-# user/add
+# user
 # - post() to create a user, e.g. http://splitmyri.de/user/add with a POST body containing all the data to create the user
+

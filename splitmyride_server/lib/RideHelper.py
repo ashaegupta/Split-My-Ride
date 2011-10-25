@@ -132,13 +132,14 @@ class RideHelper(object):
     def request_match(klass, ride_id, match_ride_id):
         ride = klass.get_ride(ride_id)
         match = klass.get_ride(match_ride_id)
-
+        
         match_currently_pending_id = match.get(Ride.A_PENDING_RIDE_ID)
+        
         if match_currently_pending_id and match_currently_pending_id != ride_id:
             return ApiResponse.RIDE_CURRENTLY_PENDING
 
         # update the status of both ride ids to be STATUS_PENDING
-        requested = Ride.request_ride(ride_id, match_ride_id)
+        requested = Ride.request_match(ride_id, match_ride_id)
         if not requested:
              return ApiResponse.RIDE_COULD_NOT_REQUEST_MATCH
         

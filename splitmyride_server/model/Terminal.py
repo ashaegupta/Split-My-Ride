@@ -17,14 +17,12 @@ class Terminal(MongoMixIn.MongoMixIn):
     A_AIRLINE               = 'airline'
     A_TERMINAL              = 'terminal'
     
-    ### Do I need to do this?
     @classmethod
     def setup_mongo_indexes(klass):
         coll = klass.mdbc()
     
     @classmethod
     def store_terminal_info(klass, all_airports_info=None):      
-        success = True
         if not all_airports_info: all_airports_info = {}
         
         for airport, airlines in all_airports_info.iteritems():
@@ -35,17 +33,16 @@ class Terminal(MongoMixIn.MongoMixIn):
                     klass.A_TERMINAL: terminal
                 }
                 try:
-                    klass.mdbc().update(spec=doc, document={"$set": doc}, upsert=True, safe=True) ## Assuming this will just update whatever is there
+                    klass.mdbc().update(spec=doc, document={"$set": doc}, upsert=True, safe=True)
                 except Exception, e:
                     print "error: %s. locals: %s" % (e, locals())
-                    success = False
-        return success
+                    return False
+        return True
 
     @classmethod
     def get_terminal_info_by_airport(klass, airport):
-        airlines = {}
         spec = {klass.A_AIRPORT:airport}
         docs = klass.mdbc().find(spec)
-        airlines = klass.list_from_cursor(docs, remove_object_id=True)
+        airlines = klass.dict_from_cursor(docs, key=klass.A_AIRLINE, remove_object_id=True)
         return airlines
       

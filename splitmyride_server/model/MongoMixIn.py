@@ -65,13 +65,13 @@ class MongoMixIn(object):
         return klass.MONGO_DB_POINTER
     
     @classmethod
-    def find_one_remove_object_id(klass, spec, remove_object_id=True):
+    def find_one(klass, spec, remove_object_id=False):
         resp = klass.mdbc().find_one(spec)
         if resp:
             if remove_object_id:
                 if (klass.A_OBJECT_ID in resp):
                     del resp[klass.A_OBJECT_ID]
-        return resp    
+        return resp
     
     @classmethod
     def dict_from_cursor(klass, cursor, key, remove_object_id=False):

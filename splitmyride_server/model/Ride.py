@@ -43,9 +43,8 @@ class Ride(MongoMixIn.MongoMixIn):
     ACTION_ACCEPT           = 'accept'
     ACTION_DECLINE          = 'decline'
     
-    DEFAULT_EXPIRY_WINDOW_IN_SECONDS    = 60*60    # one hour
-    MAX_WAIT_TIME_IN_SECONDS            = 15*60    # 15 mins
-    
+    DEFAULT_EXPIRY_WINDOW_IN_SECONDS    = 60*30    # 30 mins
+    MAX_WAIT_TIME_IN_SECONDS            = 60*15    # 15 mins
     MAX_DISTANCE_IN_KMS                 = 1.2
     
 
@@ -82,7 +81,7 @@ class Ride(MongoMixIn.MongoMixIn):
             doc[klass.A_TIMESTAMP_CREATED] = int(time.time())
         
         # Convert time into datetime and create expiry, if doesn't already exist
-        if not doc.get(klass.A_TIMESTAMP_EXPIRES):
+        if doc.get(klass.A_TIMESTAMP_DEPARTURE) and not doc.get(klass.A_TIMESTAMP_EXPIRES):
             doc[klass.A_TIMESTAMP_EXPIRES] = doc.get(klass.A_TIMESTAMP_DEPARTURE) + klass.DEFAULT_EXPIRY_WINDOW_IN_SECONDS
         
         # Initiate status to pending if it does not exist
@@ -115,7 +114,7 @@ class Ride(MongoMixIn.MongoMixIn):
     @classmethod
     def get_ride(klass, ride_id):
         spec = {klass.A_RIDE_ID:ride_id}
-        ride_to_match = klass.mdbc().find_one_remove_object_id(spec, remove_object_id=True)
+        ride_to_match = klass.find_one(spec, remove_object_id=True)
         return ride_to_match
     
     @classmethod
@@ -193,7 +192,7 @@ class Ride(MongoMixIn.MongoMixIn):
         return klass.create_or_update_ride_and_match(ride_doc, match_doc)
 
     @classmethod
-    def decline_request(klass, ride_id, match_ride_id):
+    def decline_match(klass, ride_id, match_ride_id):
         ride_doc = {
             klass.A_RIDE_ID: ride_id,
             klass.A_STATUS: klass.STATUS_PREPENDING,
@@ -218,5 +217,25 @@ class Ride(MongoMixIn.MongoMixIn):
             return False
         return True
 
-
-
+    @classmethod
+    def update_status_of_expired_rides(klass):
+        curr_time = int(time.time())
+        
+        # find all rides that are expired
+        query = {
+            klass.A_TIMESTAMP_EXPIRES:{
+            "$lt":curr_time
+            }
+        }
+        cursor = klass.mdbc().find(query)
+        
+        # update all expired rides
+        if cursor:
+            for c in cursor:
+                if klass.A_RIDE_ID and klass.A_STATUS in c:
+                    update_doc = {
+                        klass.A_RIDE_ID: c[klass.A_RIDE_ID],
+                        klass.A_STATUS: klass.STATUS_EXPIRED
+                    }
+                    klass.create_or_update_ride(update_doc)
+        

@@ -27,8 +27,8 @@ user_1 = {
 }
 
 user_4 = {
-    'first_name':"Henry",
-    'last_name':"VIII",
+    'first_name':"Waddle",
+    'last_name':"Farse",
     'phone':"6502419843",
     'img_url':"aasf.gif"
 }
