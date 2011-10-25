@@ -97,14 +97,19 @@ class MatchHandler(BaseHandler):
 class TerminalHandler(BaseHandler):
 
     def get(self):
-        m = re.match('^/terminal/([a-zA-Z]){3}$', self.request.uri)
+        terminals = {}
+        m = re.match('^/terminal/([a-zA-Z]{3})$', self.request.uri)
         if m:
             airport = m.group(1)
             terminals = TerminalHelper.get_terminals(airport)
         self.write(terminals)
 
+class MainHandler(BaseHandler):
+    def get(self):
+        self.write("This is the homepage")
+
 application = tornado.web.Application([
-    #(r"/", MainHandler),                # get() - homepage - link to app
+    (r"/", MainHandler),                # get() - homepage - link to app
     (r"/user/.*", UserHandler),          # get() - get user data; post() - create a user
     (r"/ride/.*", RideHandler),          # post() - create or edit a ride
     (r"/match/.*", MatchHandler),        # get() - list of matches / match for a ride; post() - request/accept/decline a match
