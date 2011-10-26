@@ -45,7 +45,7 @@ class UserHandler(BaseHandler):
         last_name = self.get_argument('last_name')
         image_url = self.get_argument('image_url') 
         phone = self.get_argument('phone')
-        resp = UserHelper.add_user(first_name, last_name, image_url, phone)
+        resp = UserHelper.add_user(first_name=first_name, last_name=last_name, image_url=image_url, phone=phone)
         self.write(resp)
         
 class RideHandler(BaseHandler):
@@ -65,9 +65,9 @@ class RideHandler(BaseHandler):
         dest_lon = self.get_argument('dest_lon') 
         dest_lat = self.get_argument('dest_lat')
         departure_time = self.get_argument('departure_time')
-        resp = RideHelper.create_or_update_ride(user_id, origin, 
-                                                dest_lon, dest_lat, 
-                                                departure_time)
+        resp = RideHelper.create_or_update_ride(user_id=user_id, origin=origin, 
+                                                dest_lon=dest_lon, dest_lat=dest_lat, 
+                                                departure_time=departure_time)
         self.write(resp)
 
 class MatchHandler(BaseHandler):
@@ -91,7 +91,7 @@ class MatchHandler(BaseHandler):
         action = self.get_argument('action')
         ride_id = self.get_argument('ride_id')
         match_ride_id = self.get_argument('match_ride_id')
-        resp = RideHelper.do_action(action, ride_id, match_ride_id)
+        resp = RideHelper.do_action(action=action, ride_id=ride_id, match_ride_id=match_ride_id)
         self.write(resp)
 
 class TerminalHandler(BaseHandler):
