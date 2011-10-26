@@ -14,7 +14,7 @@ class BaseHandler(tornado.web.RequestHandler):
     def require_params(self, required_params):
         missing_params = []
         for param in required_params:
-            if param not in self.arguments:
+            if param not in self.request.arguments:
                 missing_params.append(param)
         if missing_params:
             error = ApiResponse.API_MISSING_PARAMS
@@ -78,7 +78,7 @@ class MatchHandler(BaseHandler):
     #   If the ride_id is MATCHED, returns the match
     def get(self):
         matches = {}
-        m = re.match('^/match/([0-9a-f]){32}$', self.request.uri)
+        m = re.match('^/match/([0-9a-f]{32})$', self.request.uri)
         if m:
             ride_id = m.group(1)
             matches = RideHelper.get_matches(ride_id)
