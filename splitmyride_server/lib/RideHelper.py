@@ -1,6 +1,5 @@
 from model.Ride import Ride
 from model.User import User
-import simplejson
 from lib import ApiResponse
 from lib.UserHelper import UserHelper   
 from lib.TwilioHelper import TwilioHelper
@@ -8,16 +7,12 @@ from lib.TwilioHelper import TwilioHelper
 class RideHelper(object):
     
     @classmethod
-    def create_or_update_ride(klass, user_id, origin, dest_lon, dest_lat, departure_time):
-        ## Convert the origin and destination dictionaries into a string
-        origin_dict = simplejson.loads(origin)
-        origin_1 = origin_dict.get('origin_1')
-        origin_2 = origin_dict.get('origin_2')
-
+    def create_or_update_ride(klass, user_id, origin_venue, dest_lon, dest_lat, departure_time, origin_pick_up=None):
+        
         doc = {
             Ride.A_USER_ID:user_id,
-            Ride.A_ORIGIN_1:origin_1,
-            Ride.A_ORIGIN_2:origin_2,
+            Ride.A_ORIGIN_VENUE:origin_venue,
+            Ride.A_ORIGIN_PICK_UP:origin_pick_up,
             Ride.A_DESTINATION_LON:dest_lon,
             Ride.A_DESTINATION_LAT:dest_lat,
             Ride.A_TIMESTAMP_DEPARTURE:departure_time
@@ -98,7 +93,7 @@ class RideHelper(object):
             return ApiResponse.RIDE_NOT_FOUND
         
         return [klass.format_ride(match_ride_id)]
-
+    
     @classmethod
     def format_ride(klass, ride_doc_or_ride_id):
         if type(ride_doc_or_ride_id) != dict:

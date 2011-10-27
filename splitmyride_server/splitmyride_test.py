@@ -128,11 +128,10 @@ def add_rides():
     departure_timestamp = time.mktime(dt.timetuple())
     dest_lat = 40.65 
     dest_lon = 73.78
-    origin = """ {
-        "origin_1":"jfk",
-        "origin_2":"Terminal A"
-        } """
-    ride_id = RideHelper.create_or_update_ride(user_id, origin, dest_lon, dest_lat, departure_timestamp)
+    origin_place = 'jfk'
+    origin_pick_up = 'Terminal A'
+    ride_id_doc = RideHelper.create_or_update_ride(user_id, origin_place, origin_pick_up, dest_lon, dest_lat, departure_timestamp)
+    ride_id = ride_id_doc.get('ride_id')
         
     # Check to see that the ride info was stored
     ride = RideHelper.get_ride(ride_id)
@@ -156,21 +155,25 @@ def add_rides():
     print user
 
     # Create another ride that will leave in 2 hrs for user_4
-    ride_id = RideHelper.create_or_update_ride(user_id, origin, dest_lon, dest_lat, departure_timestamp+60*2*60)
+    ride_id_doc = RideHelper.create_or_update_ride(user_id, origin_place, origin_pick_up, dest_lon, dest_lat, departure_timestamp+60*2*60)
+    ride_id = ride_id_doc.get('ride_id')
     # Check to see that the ride info was stored
     ride = RideHelper.get_ride(ride_id)
     print "Ride that will leave 2 hrs later"
     print ride
 
     # Create another ride that will go to a far away destination for user_4
-    ride_id = RideHelper.create_or_update_ride(user_id, origin, dest_lon+10, dest_lat+10, departure_timestamp)
+    
+    ride_id = RideHelper.create_or_update_ride(user_id, origin_place, origin_pick_up, dest_lon+10, dest_lat+10, departure_timestamp)
+    ride_id = ride_id_doc.get('ride_id')
     # Check to see that the ride info was stored
     ride = RideHelper.get_ride(ride_id)
     print "Ride with far away destination"
     print ride
 
     # Create another ride that will be an ideal match, only .5 degrees further for user_4
-    ride_id = RideHelper.create_or_update_ride(user_id, origin, dest_lon+0.005, dest_lat+0.005, departure_timestamp)
+    ride_id = RideHelper.create_or_update_ride(user_id, origin_place, origin_pick_up, dest_lon+0.005, dest_lat+0.005, departure_timestamp)
+    ride_id = ride_id_doc.get('ride_id')
     # Check to see that the ride info was stored
     ride = RideHelper.get_ride(ride_id)
     print "Ride with only .5 degrees distance from ride to match"
@@ -182,18 +185,17 @@ def add_rides():
     user_id = user.get(User.A_USER_ID)
 
     # Create another ride that will be an ideal match with only .5 degrees further for user_3
-    ride_id = RideHelper.create_or_update_ride(user_id, origin, dest_lon+0.003,  dest_lat+0.003, departure_timestamp+10*60)
+    ride_id = RideHelper.create_or_update_ride(user_id, origin_place, origin_pick_up, dest_lon+0.003,  dest_lat+0.003, departure_timestamp+10*60)
+    ride_id = ride_id_doc.get('ride_id')
     # Check to see that the ride info was stored
     ride = RideHelper.get_ride(ride_id)
     print "Ride with only .3 degrees distance from ride to match"
     print ride
 
     # Create another ride that leaves from a different origin for user_3
-    origin = """{
-            "origin_1":"lga",
-            "origin_2":"Terminal B"
-        }"""
-    ride_id = RideHelper.create_or_update_ride(user_id, origin, dest_lon, dest_lat, departure_timestamp)
+    origin_place = "jfk"
+    origin_pick_up="Terminal B"
+    ride_id = RideHelper.create_or_update_ride(user_id, origin_place, origin_pick_up, dest_lon, dest_lat, departure_timestamp)
     # Check to see that the ride info was stored
     ride = RideHelper.get_ride(ride_id)
     print "Ride with different origin, same max distance"

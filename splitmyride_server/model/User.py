@@ -43,7 +43,7 @@ class User(MongoMixIn.MongoMixIn):
             logging.error("COULD NOT UPSERT document in model.User Exception: %s" % e.message)
             return False
             
-        return user_id
+        return {klass.A_USER_ID:user_id}
 
     @classmethod
     def get_user_by_phone(klass, phone):

@@ -4,7 +4,7 @@ from lib import ApiResponse
 class UserHelper(object):
     
     @classmethod
-    def add_user(klass, first_name=first_name, last_name=last_name, phone=phone, image_url=image_url):
+    def add_user(klass, first_name, last_name, phone, image_url):
         doc = {
             User.A_FIRST_NAME:first_name,
             User.A_LAST_NAME:last_name,

@@ -18,11 +18,11 @@ class Ride(MongoMixIn.MongoMixIn):
     
     A_RIDE_ID               = 'ride_id'
     A_USER_ID               = 'user_id'                          
-    A_ORIGIN_1              = 'origin_1'
-    A_ORIGIN_2              = 'origin_2'
+    A_ORIGIN_VENUE          = 'org_ven'
+    A_ORIGIN_PICK_UP        = 'org_pkup'
     A_DESTINATION_LON       = 'dest_lon'
     A_DESTINATION_LAT       = 'dest_lat'
-    A_LOC                   = 'loc'             # loc = [float(lat), float(lon)]
+    A_LOC                   = 'loc'             # loc = [float(lon), float(lat)]
     A_TIMESTAMP_CREATED     = 'ts_c'
     A_TIMESTAMP_DEPARTURE   = 'ts_d'
     A_TIMESTAMP_EXPIRES     = 'ts_e'
@@ -82,7 +82,7 @@ class Ride(MongoMixIn.MongoMixIn):
         
         # Convert time into datetime and create expiry, if doesn't already exist
         if doc.get(klass.A_TIMESTAMP_DEPARTURE) and not doc.get(klass.A_TIMESTAMP_EXPIRES):
-            doc[klass.A_TIMESTAMP_EXPIRES] = doc.get(klass.A_TIMESTAMP_DEPARTURE) + klass.DEFAULT_EXPIRY_WINDOW_IN_SECONDS
+            doc[klass.A_TIMESTAMP_EXPIRES] = int(doc.get(klass.A_TIMESTAMP_DEPARTURE)) + klass.DEFAULT_EXPIRY_WINDOW_IN_SECONDS
         
         # Initiate status to pending if it does not exist
         if not doc.get(klass.A_STATUS):
@@ -108,7 +108,7 @@ class Ride(MongoMixIn.MongoMixIn):
         except Exception, e:
             logging.error("COULD NOT UPSERT document in model.Ride Exception: %s" % e.message)
             return False
-        return ride_id
+        return {klass.A_RIDE_ID:ride_id}
 
 
     @classmethod
@@ -131,8 +131,8 @@ class Ride(MongoMixIn.MongoMixIn):
                 # status pending
                 klass.A_STATUS:klass.STATUS_PREPENDING,
                 # must match origin exactly
-                klass.A_ORIGIN_1:ride_to_match.get(klass.A_ORIGIN_1),
-                klass.A_ORIGIN_2:ride_to_match.get(klass.A_ORIGIN_2),
+                klass.A_ORIGIN_VENUE:ride_to_match.get(klass.A_ORIGIN_VENUE),
+                klass.A_ORIGIN_PICK_UP:ride_to_match.get(klass.A_ORIGIN_PICK_UP),
                 # get an ordered list close to desired lat and lon
                 klass.A_LOC: {
                     "$near":ride_to_match.get(klass.A_LOC),
@@ -147,7 +147,7 @@ class Ride(MongoMixIn.MongoMixIn):
             rides = klass.list_from_cursor(cursor, remove_object_id=True)
             if rides:
                 rides = klass.filter_rides_by_max_distance(rides, ride_to_match.get(klass.A_LOC))
-        return rides    
+        return rides
     
     @classmethod
     def filter_rides_by_max_distance(klass, rides, distance_from):
@@ -207,7 +207,7 @@ class Ride(MongoMixIn.MongoMixIn):
             klass.A_REJECTED_RIDE_ID: ride_id
         }
         return klass.create_or_update_ride_and_match(ride_doc, match_doc)
-
+           
     @classmethod
     def create_or_update_ride_and_match(klass, ride_doc, match_doc):
         ride_update_success = klass.create_or_update_ride(ride_doc)

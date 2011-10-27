@@ -3,22 +3,40 @@ import re
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
+import simplejson
 
 from lib.RideHelper import RideHelper
 from lib.TerminalHelper import TerminalHelper
 from lib.UserHelper import UserHelper
-
 from lib import ApiResponse
 
 class BaseHandler(tornado.web.RequestHandler):
-    def require_params(self, required_params):
+    def check_params(self, required_params):
         missing_params = []
-        for param in required_params:
-            if param not in self.request.arguments:
+        invalid_types = {}
+        
+        for param, param_type in required_params.iteritems():
+            if param not in self.request.arguments.keys():
                 missing_params.append(param)
-        if missing_params:
-            error = ApiResponse.API_MISSING_PARAMS
-            error['message'] += ' %s' % ', '.join(missing_params)
+            else:
+                try:
+                    if param_type == 'str':
+                        str(self.get_argument(param))
+                    elif param_type == 'int':
+                        int(float(self.get_argument(param)))
+                    elif param_type == 'float':
+                        float(self.get_argument(param))
+                except:
+                    invalid_types[param]=param_type
+        
+        if missing_params or invalid_types:
+            error = ApiResponse.API_MISSING_OR_INVALID_PARAMS
+            if missing_params:
+                error['message'] += ApiResponse.API_MISSING_PARAMS_MSG + ' %s. ' % ', '.join(missing_params)
+            if invalid_types:
+                error['message'] += (' %s cannot be typecasted to a(n) %s, respectively.' 
+                                                    % (', '.join(invalid_types.keys()), 
+                                                       ', '.join(invalid_types.values())))
             self.finish(error)
             return False
         return True
@@ -37,10 +55,15 @@ class UserHandler(BaseHandler):
        
     # Add a new user with first_name, last_name, phone and image_url
     def post(self):
-        required_params = ['first_name', 'last_name', 'image_url', 'phone']
+        required_params = {
+            'first_name':'str',
+            'last_name':'str',
+            'image_url':'str',
+            'phone':'str'
+        }
         # returning becuase calling write() a few lines below will throw an error
-        # since require_params already called write() or finish()
-        if not self.require_params(required_params): return
+        # since check_params already called write() or finish()
+        if not self.check_params(required_params): return
         first_name = self.get_argument('first_name') 
         last_name = self.get_argument('last_name')
         image_url = self.get_argument('image_url') 
@@ -55,17 +78,29 @@ class RideHandler(BaseHandler):
     #       origin = string wrapped list with two elements, venue_id and place pick-up
     #       dest_lon = longitude of destination
     #       dest_lat = latitude of destination
-    #       departure time
-    #
+    #       departure time = desired time of departure
+    #       TODO: Clean up this method, change required_params to be a dictionary that also checks for type.
     def post(self):
-        required_params = ['user_id', 'origin', 'dest_lon', 'dest_lat', 'departure_time']
-        if not self.require_params(required_params): return
-        user_id = self.get_argument('user_id') 
-        origin = self.get_argument('origin')
-        dest_lon = self.get_argument('dest_lon') 
-        dest_lat = self.get_argument('dest_lat')
-        departure_time = self.get_argument('departure_time')
-        resp = RideHelper.create_or_update_ride(user_id=user_id, origin=origin, 
+        required_params = {
+            'user_id':'str',
+            'origin_venue':'str',
+            'dest_lon':'float',
+            'dest_lat':'float',
+            'departure_time':'float'
+        }
+        if not self.check_params(required_params): return
+        
+        if 'origin_pick_up' not in self.request.arguments: origin_pick_up=None            
+        else: origin_pick_up=self.get_argument('origin_pick_up')
+        
+        user_id = self.get_argument('user_id')
+        origin_venue = self.get_argument('origin_venue')
+        origin_pick_up = self.get_argument('origin_pick_up')
+        dest_lon = float(self.get_argument('dest_lon'))
+        dest_lat = float(self.get_argument('dest_lat'))
+        departure_time = float(self.get_argument('departure_time')
+            
+        resp = RideHelper.create_or_update_ride(user_id=user_id, origin_venue=origin_venue, origin_pick_up=origin_pick_up,
                                                 dest_lon=dest_lon, dest_lat=dest_lat, 
                                                 departure_time=departure_time)
         self.write(resp)
@@ -82,12 +117,17 @@ class MatchHandler(BaseHandler):
         if m:
             ride_id = m.group(1)
             matches = RideHelper.get_matches(ride_id)
-        self.write(matches)
+            matches_js = simplejson.dumps(matches)
+        self.write(matches_js)
     
     # Request, accept or decline a match
     def post(self):
-        required_params = ['action', 'ride_id', 'match_ride_id']
-        if not self.require_params(required_params): return
+        required_params = {
+            'action':'str',
+            'ride_id':'str',
+            'match_ride_id':'str'
+        }
+        if not self.check_params(required_params): return
         action = self.get_argument('action')
         ride_id = self.get_argument('ride_id')
         match_ride_id = self.get_argument('match_ride_id')
@@ -109,7 +149,7 @@ class MainHandler(BaseHandler):
         self.write("This is the homepage")
 
 application = tornado.web.Application([
-    (r"/", MainHandler),                # get() - homepage - link to app
+    (r"/", MainHandler),                 # get() - homepage - link to app
     (r"/user/.*", UserHandler),          # get() - get user data; post() - create a user
     (r"/ride/.*", RideHandler),          # post() - create or edit a ride
     (r"/match/.*", MatchHandler),        # get() - list of matches / match for a ride; post() - request/accept/decline a match

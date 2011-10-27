@@ -82,7 +82,13 @@ RIDE_USER_NOT_FOUND = {
     'message':'Could not find this a user object affiliated with this ride'
 }
 
-API_MISSING_PARAMS = {
+API_MISSING_OR_INVALID_PARAMS = {
     'error':1,
-    'message':'The following param(s) were missing: '
+    'message':''
+}
+API_MISSING_PARAMS_MSG = 'The following param(s) were missing: '
+
+RIDE_INVALID_ARGUMENT_TYPES = {
+    'error':1,
+    'message':'Invalid argument types. dest_lon and dest_lat should be floats, departure_time should be an int, all other args should be strings'
 }
