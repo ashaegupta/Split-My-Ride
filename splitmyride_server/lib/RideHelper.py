@@ -7,9 +7,10 @@ from lib.TwilioHelper import TwilioHelper
 class RideHelper(object):
     
     @classmethod
-    def create_or_update_ride(klass, user_id, origin_venue, dest_lon, dest_lat, departure_time, origin_pick_up=None):
+    def create_or_update_ride(klass, user_id, origin_venue, dest_lon, dest_lat, departure_time, ride_id=None, origin_pick_up=None):
         
         doc = {
+            Ride.A_RIDE_ID:ride_id,
             Ride.A_USER_ID:user_id,
             Ride.A_ORIGIN_VENUE:origin_venue,
             Ride.A_ORIGIN_PICK_UP:origin_pick_up,

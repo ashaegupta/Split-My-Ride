@@ -21,7 +21,7 @@ class BaseHandler(tornado.web.RequestHandler):
             else:
                 try:
                     if param_type == 'str':
-                        str(self.get_argument(param))
+                        eval(param_type)(self.get_argument(param))
                     elif param_type == 'int':
                         int(float(self.get_argument(param)))
                     elif param_type == 'float':
@@ -90,17 +90,21 @@ class RideHandler(BaseHandler):
         }
         if not self.check_params(required_params): return
         
-        if 'origin_pick_up' not in self.request.arguments: origin_pick_up=None            
-        else: origin_pick_up=self.get_argument('origin_pick_up')
+        if 'ride_id' not in self.request.arguments or not self.get_argument('ride_id'): ride_id=None            
+        else: ride_id=self.get_argument('ride_id')
+        
+        if 'origin_pickup' not in self.request.arguments or not self.get_argument('origin_pickup'): origin_pickup=None            
+        else: origin_pickup=self.get_argument('origin_pickup')
         
         user_id = self.get_argument('user_id')
         origin_venue = self.get_argument('origin_venue')
-        origin_pick_up = self.get_argument('origin_pick_up')
+        origin_pick_up = self.get_argument('origin_pickup')
         dest_lon = float(self.get_argument('dest_lon'))
         dest_lat = float(self.get_argument('dest_lat'))
         departure_time = float(self.get_argument('departure_time')
             
-        resp = RideHelper.create_or_update_ride(user_id=user_id, origin_venue=origin_venue, origin_pick_up=origin_pick_up,
+        resp = RideHelper.create_or_update_ride(user_id=user_id, ride_id=ride_id, origin_venue=origin_venue, 
+                                                origin_pick_up=origin_pickup,
                                                 dest_lon=dest_lon, dest_lat=dest_lat, 
                                                 departure_time=departure_time)
         self.write(resp)
@@ -150,7 +154,7 @@ class MainHandler(BaseHandler):
 
 application = tornado.web.Application([
     (r"/", MainHandler),                 # get() - homepage - link to app
-    (r"/user/.*", UserHandler),          # get() - get user data; post() - create a user
+    (r"/user/.*", UserHandler),       # get() - get user data; post() - create a user
     (r"/ride/.*", RideHandler),          # post() - create or edit a ride
     (r"/match/.*", MatchHandler),        # get() - list of matches / match for a ride; post() - request/accept/decline a match
     (r"/terminal/.*", TerminalHandler),  # get() - get a list of terminals by airline
@@ -161,10 +165,13 @@ if __name__ == "__main__":
     http_server.listen(80)
     tornado.ioloop.IOLoop.instance().start()
     
-## Convert string into a dictionary
 # --- urls ---
 # user/:phone
-# - get() a user's data, e.g. http://splitmyri.de/user/6469152002
-# user
-# - post() to create a user, e.g. http://splitmyri.de/user/add with a POST body containing all the data to create the user
+# - get() a user's data, e.g. http://splitmyri.de/user/5555555555
+# user/
+# - post() to create a user, e.g. http://splitmyri.de/user/ with a POST body containing all the data to create the user
+# user  /:phone
+# - get() a user's data, e.g. http://splitmyri.de/user/5555555555
+# user/
+# - post() to create a user, e.g. http://splitmyri.de/user/ with a POST body containing all the data to create the user
 
