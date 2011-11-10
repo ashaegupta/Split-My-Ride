@@ -16,7 +16,7 @@ class UserHelper(object):
         if not user_id:
             return ApiResponse.USER_COULD_NOT_CREATE
         else:
-            return {User.A_USER_ID: user_id}
+            return user_id
         
     @classmethod
     def get_user_by_phone(klass, phone):
