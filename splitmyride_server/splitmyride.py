@@ -1,6 +1,7 @@
 import re
 
 import tornado.httpserver
+import tornado.autoreload
 import tornado.ioloop
 import tornado.web
 import simplejson
@@ -101,7 +102,7 @@ class RideHandler(BaseHandler):
         origin_pick_up = self.get_argument('origin_pickup')
         dest_lon = float(self.get_argument('dest_lon'))
         dest_lat = float(self.get_argument('dest_lat'))
-        departure_time = float(self.get_argument('departure_time')
+        departure_time = float(self.get_argument('departure_time'))
             
         resp = RideHelper.create_or_update_ride(user_id=user_id, ride_id=ride_id, origin_venue=origin_venue, 
                                                 origin_pick_up=origin_pickup,
@@ -163,6 +164,7 @@ application = tornado.web.Application([
 if __name__ == "__main__":
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(80)
+    tornado.autoreload.start()
     tornado.ioloop.IOLoop.instance().start()
     
 # --- urls ---
