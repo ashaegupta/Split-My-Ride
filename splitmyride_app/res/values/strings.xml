@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World</string>
+    <string name="app_name">SplitMyRide</string>
+  
+	<string name="phone">phone</string>
+    <string name="user_id">user_id</string>
+	<string name="img_url">image_url></string>
+	<string name="first_name">first_name</string>
+	<string name="last_name">last_name</string>
+	
+	<string name="status">status</string>
+	<string name="ride_id">ride_id</string>
+	<string name="origin_venue">origin_venue</string>
+	<string name="origin_pickup">origin_pickup</string>
+	<string name="dest_lon">dest_lon</string>
+	<string name="dest_lat">dest_lat</string>
+	<string name="dest_address">dest_address</string>
+	<string name="departure_time">departure_time</string>
+
+	<string name="match_ride_id">match_ride_id</string>    
+
+</resources>

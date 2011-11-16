@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" android:weightSum="1" android:orientation="vertical">
+    <TextView android:textAppearance="?android:attr/textAppearanceLarge" android:layout_width="152dp" android:layout_height="wrap_content" android:id="@+id/firstname" android:text="First Name"></TextView>
+    <EditText android:id="@+id/firstnameEdtitext" android:layout_width="147dp" android:layout_height="wrap_content"></EditText>
+    <TextView android:textAppearance="?android:attr/textAppearanceLarge" android:layout_width="152dp" android:layout_height="wrap_content" android:id="@+id/lastname" android:text="Last Name"></TextView>
+    <EditText android:id="@+id/lastnameEditText" android:layout_width="147dp" android:layout_height="wrap_content"></EditText>
+    <TextView android:textAppearance="?android:attr/textAppearanceLarge" android:id="@+id/phone" android:text="Phone Number" android:layout_width="152dp" android:layout_height="wrap_content"></TextView>
+    <EditText android:id="@+id/phoneEditText" android:layout_width="147dp" android:layout_height="wrap_content">
+        <requestFocus></requestFocus>
+    </EditText>
+   <Button android:text="Save" android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/buttonSave"></Button>
+   
+</LinearLayout>

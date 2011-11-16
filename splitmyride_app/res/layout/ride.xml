@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:weightSum="1">
+    <LinearLayout android:id="@+id/linearLayout1" android:layout_width="match_parent" android:layout_height="wrap_content" android:weightSum="1" android:orientation="horizontal">
+        <TextView android:textAppearance="?android:attr/textAppearanceLarge" android:layout_height="wrap_content" android:id="@+id/textView2" android:text="Terminal" android:layout_width="0dp" android:layout_weight="0.64"></TextView>
+        <EditText android:id="@+id/editTerminal" android:layout_height="wrap_content" android:layout_width="88dp" android:layout_weight="0.12"></EditText>
+    </LinearLayout>
+    <TimePicker android:id="@+id/timePicker1" android:layout_width="match_parent" android:layout_height="wrap_content"></TimePicker>
+    <Button android:text="Save" android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/buttonSave"></Button>
+</LinearLayout>
