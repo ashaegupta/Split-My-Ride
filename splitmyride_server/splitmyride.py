@@ -181,7 +181,7 @@ application = tornado.web.Application([
     (r"/ride/.*", RideHandler),          # post() - create or edit a ride
     (r"/match/.*", MatchHandler),        # get() - list of matches / match for a ride; post() - request/accept/decline a match
     (r"/terminal/.*", TerminalHandler),  # get() - get a list of terminals by airline
-    (r"/cofi/.*", CofiHandler),  # get() 
+    (r"/cofi/.*", CofiHandler)  # get() 
 ])
 
 if __name__ == "__main__":
