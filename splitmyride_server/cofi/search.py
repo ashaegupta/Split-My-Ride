@@ -6,7 +6,7 @@ import urllib2
 from place import Place
 import place
 
-YELP_WIFI_CAFE_SEACH_TERM ='wifi+cafe'
+YELP_WIFI_CAFE_SEARCH_TERM ='wifi+cafe'
 YELP_ROOT_URL = 'http://api.yelp.com/v2/search?term='
 YELP_BUSINESSES_TERM = "businesses"
 
