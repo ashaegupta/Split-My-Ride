@@ -15,12 +15,10 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.android.splitmyride.data.AppPreferences;
+import android.util.Log;
 
 public class ApiUtils {
     protected static final String TAG = "ApiUtils";
-    protected static final boolean DEBUG = AppPreferences.DEBUG;
-    
     // Does an HttpPost and returns a JSONObject
     public static JSONObject doHttpPost(String url, List<NameValuePair> data){
     	HttpClient httpclient = new DefaultHttpClient();   
@@ -29,9 +27,13 @@ public class ApiUtils {
 	    
     	try {
             httppost.setEntity(new UrlEncodedFormEntity(data));
+            
+            Log.v("Debug", data.toString());
+            
             try {
                 HttpResponse response = httpclient.execute(httppost);
                 String responseBody = EntityUtils.toString(response.getEntity());
+                Log.v("Debug", data.toString());
                 
                 try {
                 	json = new JSONObject(responseBody);

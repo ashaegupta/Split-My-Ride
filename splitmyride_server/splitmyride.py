@@ -11,6 +11,8 @@ from lib.TerminalHelper import TerminalHelper
 from lib.UserHelper import UserHelper
 from lib import ApiResponse
 
+from cofi import search
+
 class BaseHandler(tornado.web.RequestHandler):
     def check_params(self, required_params):
         missing_params = []
@@ -149,6 +151,26 @@ class TerminalHandler(BaseHandler):
             terminals = TerminalHelper.get_terminals(airport)
         self.write(terminals)
 
+class CofiHandler(BaseHandler):
+
+    # Search for places
+    def get(self):
+        required_params = {
+            'term':'str',
+            'location':'str',
+            'lat':'float',
+            'lon':'float'
+        }
+
+        if not self.check_params(required_params): return
+        term = self.get_argument('term') 
+        location = self.get_argument('location')
+        lat = self.get_argument('lat') 
+        lon = self.get_argument('lon')    
+
+        resp = search.do(term=term, location=location, lat=lat, lon=lon)
+        self.write(resp)
+
 class MainHandler(BaseHandler):
     def get(self):
         self.write("This is the homepage")
@@ -159,6 +181,7 @@ application = tornado.web.Application([
     (r"/ride/.*", RideHandler),          # post() - create or edit a ride
     (r"/match/.*", MatchHandler),        # get() - list of matches / match for a ride; post() - request/accept/decline a match
     (r"/terminal/.*", TerminalHandler),  # get() - get a list of terminals by airline
+    (r"/cofi/.*", CofiHandler),  # get() 
 ])
 
 if __name__ == "__main__":
