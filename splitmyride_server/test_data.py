@@ -8,21 +8,21 @@
 user_3 = {
     'first_name':"Asha",
     'last_name':"Gupta",
-    'phone':"6507042373",
+    'phone':"6501042343",
     'img_url':"aasf.gif"
 }
 
 user_2 = {
     'first_name':"Helen",
     'last_name':"Sadowski",
-    'phone':"7804552742",
+    'phone':"7803551742",
     'img_url':"aasf.gif"
 }
 
 user_1 = {
     'first_name':"Shreyans",
     'last_name':"Bhansali",
-    'phone':"6469152002",
+    'phone':"6469152992",
     'img_url':"aasf.gif"
 }
 
